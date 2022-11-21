@@ -25,6 +25,8 @@ static void free_messages_type(struct msg_type *msg);
 static void msgedit_main_menu(struct descriptor_data * d);
 static void copy_message_strings(struct message_type *tmsg, struct message_type * fmsg);
 static void copy_message_list(struct message_list *to, struct message_list *from);
+static void load_default_messages(void);
+static void save_json_messages_to_disk(void);
 
 static void free_messages_type(struct msg_type *msg)
 {
@@ -84,6 +86,22 @@ static void load_json_messages() {
   int i, msg_type;
 
   base_object = json_read_from_disk(MESS_FILE".json");
+
+  if (base_object == NULL) {
+    /*
+      ON THE FLY CONVERSION:  
+        
+        We booted the server with the intent of using the json messages file but it didn't exist.
+        Let's load the default messages (AND LEAVE IT INTACT AS A BACKUP), and then write it to the
+        disk as json for the next load time.
+
+    */
+
+    load_default_messages();
+    save_json_messages_to_disk();
+    log("CONVERSION: Created new json messages file.");
+    return;
+  }
 
   for (i = 0; i < MAX_MESSAGES; i++) {
     fight_messages[i].a_type = 0;

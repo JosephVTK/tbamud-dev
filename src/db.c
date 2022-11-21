@@ -4148,8 +4148,6 @@ void load_config( void )
           CONFIG_TUNNEL_SIZE = num;
         else if (!str_cmp(tag, "track_through_doors"))
           CONFIG_TRACK_T_DOORS = num;
-        else if (!str_cmp(tag, "use_json_files"))
-          CONFIG_JSON_FILES = num;
         break;
 
       case 'u':
@@ -4157,6 +4155,8 @@ void load_config( void )
           CONFIG_USE_AUTOWIZ = num;
         else if (!str_cmp(tag, "use_new_socials"))
           CONFIG_NEW_SOCIALS = num;
+        else if (!str_cmp(tag, "use_json_files")) 
+          CONFIG_JSON_FILES = num;
         break;
 
       case 'w':
