@@ -53,7 +53,7 @@ static int  get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
 const char *get_spec_func_name(SPECIAL(*func));
-bool zedit_get_levels(struct descriptor_data *d, char *buf);
+bool zedit_get_levels(struct descriptor_data *d, char *buf, size_t maxlen);
 
 /* Local Globals */
 static struct recent_player *recent_list = NULL;  /** Global list of recent players */
@@ -1402,19 +1402,19 @@ ACMD(do_vstat)
     extract_obj(obj);
     break;
   case 'r':
-    sprintf(buf2, "room %d", atoi(buf2));
+    snprintf(buf2, MAX_INPUT_LENGTH, "room %d", atoi(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 'z':
-    sprintf(buf2, "zone %d", atoi(buf2));
+    snprintf(buf2, MAX_INPUT_LENGTH, "zone %d", atoi(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 't':
-    sprintf(buf2, "%d", atoi(buf2));
+    snprintf(buf2, MAX_INPUT_LENGTH, "%d", atoi(buf2));
     do_tstat(ch, buf2, 0, 0);
     break;
   case 's':
-    sprintf(buf2, "shops %d", atoi(buf2));
+    snprintf(buf2, MAX_INPUT_LENGTH, "shops %d", atoi(buf2));
     do_show(ch, buf2, 0, 0);
     break;
   default:
@@ -2793,7 +2793,7 @@ ACMD(do_show)
     for (r = 0; r < 6; r++)
       for (g = 0; g < 6; g++)
         for (b = 0; b < 6; b++) {
-          sprintf(colour, "F%d%d%d", r, g, b);
+          snprintf(colour, sizeof(colour), "F%d%d%d", r, g, b);
           nlen = snprintf(buf + len, sizeof(buf) - len,  "%s%s%s", ColourRGB(ch->desc, colour), colour, ++k % 6 == 0 ? "\tn\r\n" : "    ");
           if (len + nlen >= sizeof(buf))
             break;
@@ -4174,7 +4174,7 @@ ACMD(do_copyover)
       return;
     }
 
-   sprintf (buf, "\n\r *** COPYOVER by %s - please remain seated!\n\r", GET_NAME(ch));
+   snprintf(buf, sizeof(buf), "\n\r *** COPYOVER by %s - please remain seated!\n\r", GET_NAME(ch));
 
    /* write boot_time as first line in file */
    fprintf(fp, "%ld\n", (long)boot_time);
@@ -4208,8 +4208,8 @@ ACMD(do_copyover)
   fclose (fp);
 
   /* exec - descriptors are inherited */
-  sprintf (buf, "%d", port);
-  sprintf (buf2, "-C%d", mother_desc);
+  snprintf(buf, sizeof(buf), "%d", port);
+  snprintf(buf2, sizeof(buf2), "-C%d", mother_desc);
 
   /* Ugh, seems it is expected we are 1 step above lib - this may be dangerous! */
   if(chdir ("..") != 0) {
@@ -4470,7 +4470,7 @@ ACMD(do_changelog)
     return;
   }
 
-  sprintf(buf, "%s.bak", CHANGE_LOG_FILE);
+  snprintf(buf, READ_SIZE, "%s.bak", CHANGE_LOG_FILE);
   if (rename(CHANGE_LOG_FILE, buf)) {
     mudlog(BRF, LVL_IMPL, TRUE,
            "SYSERR: Error making backup changelog file (%s)", buf);
@@ -4501,7 +4501,7 @@ ACMD(do_changelog)
   rawtime = time(0);
   strftime(timestr, sizeof(timestr), "%b %d %Y", localtime(&rawtime));
 
-  sprintf(buf, "[%s] - %s", timestr, GET_NAME(ch));
+  snprintf(buf, READ_SIZE, "[%s] - %s", timestr, GET_NAME(ch));
 
   fprintf(new, "%s\n", buf);
   fprintf(new, "  %s\n", argument);
@@ -4671,7 +4671,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
   }
 
   /* Set up a few variables that will be needed */
-  sprintf(old_name, "%s", GET_NAME(vict));
+  snprintf(old_name, MAX_NAME_LENGTH, "%s", GET_NAME(vict));
   if (!get_filename(old_pfile, sizeof(old_pfile), PLR_FILE, old_name))
   {
     send_to_char(ch, "Unable to ascertain player's old pfile name.\r\n");
@@ -4692,7 +4692,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
   GET_PC_NAME(vict) = strdup(CAP(new_name));    // Change the name in the victims char struct
 
   /* Rename the player's pfile */
-  sprintf(buf, "mv %s %s", old_pfile, new_pfile);
+  snprintf(buf, MAX_STRING_LENGTH, "mv %s %s", old_pfile, new_pfile);
 
   /* Save the changed player index - the pfile is saved by perform_set */
   save_player_index();

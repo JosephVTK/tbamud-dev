@@ -228,93 +228,92 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
 {
   room_rnum prospect_room;
   struct room_direction_data *pexit;
-  int door, ew_size=0, ns_size=0, x_exit_pos=0, y_exit_pos=0;
+  int door, ew_size = 0, ns_size = 0, x_exit_pos = 0, y_exit_pos = 0;
   sh_int prospect_xpos, prospect_ypos;
 
   if (map[x][y] < 0)
     return; /* this is a door */
 
   /* marks the room as visited */
-  if(room == IN_ROOM(ch))
+  if (room == IN_ROOM(ch))
     map[x][y] = SECT_HERE;
   else
     map[x][y] = SECT(room);
 
-  if ( (x < min) || ( y < min) || ( x > max ) || ( y > max) ) return;
+  if ((x < min) || (y < min) || (x > max) || (y > max)) return;
 
   /* Check for exits */
-  for ( door = 0; door < MAX_MAP_DIR; door++ ) {
+  for (door = 0; door < MAX_MAP_DIR; door++) {
 
-    if( door < MAX_MAP_FOLLOW &&
-        xpos+door_offsets[door][0] >= 0 &&
-        xpos+door_offsets[door][0] <= ns_size &&
-        ypos+door_offsets[door][1] >= 0 &&
-        ypos+door_offsets[door][1] <= ew_size)
+    if (door < MAX_MAP_FOLLOW &&
+      xpos + door_offsets[door][0] >= 0 &&
+      xpos + door_offsets[door][0] <= ns_size &&
+      ypos + door_offsets[door][1] >= 0 &&
+      ypos + door_offsets[door][1] <= ew_size)
     { /* Virtual exit */
 
-      map[x+door_offsets[door][0]][y+door_offsets[door][1]] = vdoor_marks[door] ;
-      if (map[x+offsets[door][0]][y+offsets[door][1]] == SECT_EMPTY )
-        MapArea(room,ch,x + offsets[door][0], y + offsets[door][1], min, max, xpos+door_offsets[door][0], ypos+door_offsets[door][1], worldmap);
+      map[x + door_offsets[door][0]][y + door_offsets[door][1]] = vdoor_marks[door];
+      if (map[x + offsets[door][0]][y + offsets[door][1]] == SECT_EMPTY)
+        MapArea(room, ch, x + offsets[door][0], y + offsets[door][1], min, max, xpos + door_offsets[door][0], ypos + door_offsets[door][1], worldmap);
       continue;
     }
 
-    if ( (pexit = world[room].dir_option[door]) != NULL  &&
-         (pexit->to_room > 0 ) && (pexit->to_room != NOWHERE) &&
-         (!IS_SET(pexit->exit_info, EX_CLOSED)) &&
-         (!IS_SET(pexit->exit_info, EX_HIDDEN) || PRF_FLAGGED(ch, PRF_HOLYLIGHT)) )
+    if ((pexit = world[room].dir_option[door]) != NULL &&
+      (pexit->to_room > 0) && (pexit->to_room != NOWHERE) &&
+      (!IS_SET(pexit->exit_info, EX_CLOSED)) &&
+      (!IS_SET(pexit->exit_info, EX_HIDDEN) || PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
     { /* A real exit */
 
       /* But is the door here... */
       switch (door) {
       case NORTH:
-        if(xpos > 0 || ypos!=y_exit_pos) continue;
+        if (xpos > 0 || ypos != y_exit_pos) continue;
         break;
       case SOUTH:
-        if(xpos < ns_size || ypos!=y_exit_pos) continue;
+        if (xpos < ns_size || ypos != y_exit_pos) continue;
         break;
       case EAST:
-        if(ypos < ew_size || xpos!=x_exit_pos) continue;
+        if (ypos < ew_size || xpos != x_exit_pos) continue;
         break;
       case WEST:
-        if(ypos > 0 || xpos!=x_exit_pos) continue;
+        if (ypos > 0 || xpos != x_exit_pos) continue;
         break;
       case NORTHWEST:
-        if(xpos > 0 || ypos!=y_exit_pos || ypos > 0 || xpos!=x_exit_pos) continue;
+        if (xpos > 0 || ypos != y_exit_pos || ypos > 0 || xpos != x_exit_pos) continue;
         break;
       case NORTHEAST:
-        if(xpos > 0 || ypos!=y_exit_pos || ypos < ew_size || xpos!=x_exit_pos) continue;
+        if (xpos > 0 || ypos != y_exit_pos || ypos < ew_size || xpos != x_exit_pos) continue;
         break;
       case SOUTHEAST:
-        if(xpos < ns_size || ypos!=y_exit_pos || ypos < ew_size || xpos!=x_exit_pos) continue;
+        if (xpos < ns_size || ypos != y_exit_pos || ypos < ew_size || xpos != x_exit_pos) continue;
         break;
       case SOUTHWEST:
-        if(xpos < ns_size || ypos!=y_exit_pos || ypos > 0 || xpos!=x_exit_pos) continue;
+        if (xpos < ns_size || ypos != y_exit_pos || ypos > 0 || xpos != x_exit_pos) continue;
         break;
       }
 
 
- /*     if ( (x < min) || ( y < min) || ( x > max ) || ( y > max) ) return;*/
+      /* if ( (x < min) || ( y < min) || ( x > max ) || ( y > max) ) return; */
       prospect_room = pexit->to_room;
 
-        /* one way into area OR maze */
-        if ( world[prospect_room].dir_option[rev_dir[door]] &&
-             world[prospect_room].dir_option[rev_dir[door]]->to_room != room) {
-          map[x][y] = SECT_STRANGE;
+      /* one way into area OR maze */
+      if (world[prospect_room].dir_option[rev_dir[door]] &&
+        world[prospect_room].dir_option[rev_dir[door]]->to_room != room) {
+        map[x][y] = SECT_STRANGE;
         return;
-        }
+      }
 
-      if(!worldmap) {
-        if ((map[x+door_offsets[door][0]][y+door_offsets[door][1]] == DOOR_NONE) ||
-            (map[x+door_offsets[door][0]][y+door_offsets[door][1]] == SECT_EMPTY)  ) {
-          map[x+door_offsets[door][0]][y+door_offsets[door][1]] = door_marks[door];
+      if (!worldmap) {
+        if ((map[x + door_offsets[door][0]][y + door_offsets[door][1]] == DOOR_NONE) ||
+          (map[x + door_offsets[door][0]][y + door_offsets[door][1]] == SECT_EMPTY)) {
+          map[x + door_offsets[door][0]][y + door_offsets[door][1]] = door_marks[door];
         } else {
-          if ( ((door == NORTHEAST) && (map[x+door_offsets[door][0]][y+door_offsets[door][1]] == DOOR_UP)) ||
-               ((door == UP) && (map[x+door_offsets[door][0]][y+door_offsets[door][1]] == DOOR_DIAGNE))  ) {
-            map[x+door_offsets[door][0]][y+door_offsets[door][1]] = DOOR_UP_AND_NE;
-          }
-          else if ( ((door == SOUTHEAST) && (map[x+door_offsets[door][0]][y+door_offsets[door][1]] == DOOR_DOWN)) ||
-                    ((door == DOWN) && (map[x+door_offsets[door][0]][y+door_offsets[door][1]] == DOOR_DIAGNW))  ) {
-            map[x+door_offsets[door][0]][y+door_offsets[door][1]] = DOOR_DOWN_AND_SE;
+          if (((door == NORTHEAST) && (map[x + door_offsets[door][0]][y + door_offsets[door][1]] == DOOR_UP)) ||
+            ((door == UP) && (map[x + door_offsets[door][0]][y + door_offsets[door][1]] == DOOR_DIAGNE))) {
+            map[x + door_offsets[door][0]][y + door_offsets[door][1]] = DOOR_UP_AND_NE;
+          } else if (((door == SOUTHEAST) && (map[x + door_offsets[door][0]][y + door_offsets[door][1]] == DOOR_DOWN)) ||
+            ((door == DOWN) && (map[x + door_offsets[door][0]][y + door_offsets[door][1]] == DOOR_DIAGNW))) {
+            map[x + door_offsets[door][0]][y + door_offsets[door][1]] = DOOR_DOWN_AND_SE;
           }
         }
       }
@@ -324,28 +323,28 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
       case NORTH:
         prospect_xpos = ns_size;
       case SOUTH:
-        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size/2;
-      break;
+        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2;
+        break;
       case WEST:
         prospect_ypos = ew_size;
       case EAST:
-        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size/2;
+        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2;
         break;
       case NORTHEAST:
       case NORTHWEST:
       case SOUTHEAST:
       case SOUTHWEST:
-        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size/2;
-        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size/2;
+        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2;
+        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2;
         break;
       }
 
-      if(worldmap) {
- if ( door < MAX_MAP_FOLLOW && map[x+offsets_worldmap[door][0]][y+offsets_worldmap[door][1]] == SECT_EMPTY )
-   MapArea(pexit->to_room,ch,x + offsets_worldmap[door][0], y + offsets_worldmap[door][1], min, max, prospect_xpos, prospect_ypos, worldmap);
+      if (worldmap) {
+        if (door < MAX_MAP_FOLLOW && map[x + offsets_worldmap[door][0]][y + offsets_worldmap[door][1]] == SECT_EMPTY)
+          MapArea(pexit->to_room, ch, x + offsets_worldmap[door][0], y + offsets_worldmap[door][1], min, max, prospect_xpos, prospect_ypos, worldmap);
       } else {
- if ( door < MAX_MAP_FOLLOW && map[x+offsets[door][0]][y+offsets[door][1]] == SECT_EMPTY )
-   MapArea(pexit->to_room,ch,x + offsets[door][0], y + offsets[door][1], min, max, prospect_xpos, prospect_ypos, worldmap);
+        if (door < MAX_MAP_FOLLOW && map[x + offsets[door][0]][y + offsets[door][1]] == SECT_EMPTY)
+          MapArea(pexit->to_room, ch, x + offsets[door][0], y + offsets[door][1], min, max, prospect_xpos, prospect_ypos, worldmap);
       }
     } /* end if exit there */
   }
@@ -355,28 +354,28 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
 /* Returns a string representation of the map */
 static char *StringMap(int centre, int size)
 {
-  static char strmap[MAX_MAP*MAX_MAP*11 + MAX_MAP*2 + 1];
+  static char strmap[MAX_MAP * MAX_MAP * 11 + MAX_MAP * 2 + 1];
   char *mp = strmap;
   char *tmp;
   int x, y;
 
   /* every row */
-  for (x = centre - CANVAS_HEIGHT/2; x <= centre + CANVAS_HEIGHT/2; x++) {
+  for (x = centre - CANVAS_HEIGHT / 2; x <= centre + CANVAS_HEIGHT / 2; x++) {
     /* every column */
-    for (y = centre - CANVAS_WIDTH/6; y <= centre + CANVAS_WIDTH/6; y++) {
-      if (abs(centre - x)<=size && abs(centre-y)<=size)
-        tmp = (map[x][y]<0) ? \
-       door_info[NUM_DOOR_TYPES + map[x][y]].disp : \
-       map_info[map[x][y]].disp ;
+    for (y = centre - CANVAS_WIDTH / 6; y <= centre + CANVAS_WIDTH / 6; y++) {
+      if (abs(centre - x) <= size && abs(centre - y) <= size)
+        tmp = (map[x][y] < 0) ? \
+        door_info[NUM_DOOR_TYPES + map[x][y]].disp : \
+        map_info[map[x][y]].disp;
       else
- tmp = map_info[SECT_EMPTY].disp;
+        tmp = map_info[SECT_EMPTY].disp;
       strcpy(mp, tmp);
       mp += strlen(tmp);
     }
     strcpy(mp, "\r\n");
-    mp+=2;
+    mp += 2;
   }
-  *mp='\0';
+  *mp = '\0';
   return strmap;
 }
 
@@ -498,25 +497,25 @@ static void perform_map( struct char_data *ch, char *argument, bool worldmap )
   MapArea(IN_ROOM(ch), ch, centre, centre, min, max, ns_size/2, ew_size/2, worldmap);
 
   /* marks the center, where ch is */
-  map[centre][centre] = SECT_HERE;
+  map[centre][centre] = SECT_HERE; 
 
   /* Feel free to put your own MUD name or header in here */
   send_to_char(ch, " \tY-\tytbaMUD Map System\tY-\tn\r\n"
                    "\tD  .-.__--.,--.__.-.\tn\r\n" );
 
-  count += sprintf(buf + count, "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
-  count += sprintf(buf + count, "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
-  count += sprintf(buf + count, "\tn%s You\\\\", map_info[SECT_HERE].disp);
-  count += sprintf(buf + count, "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
-  count += sprintf(buf + count, "\tn%s City\\\\", map_info[SECT_CITY].disp);
-  count += sprintf(buf + count, "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
-  count += sprintf(buf + count, "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
-  count += sprintf(buf + count, "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
-  count += sprintf(buf + count, "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
-  count += sprintf(buf + count, "\tn%s Swim\\\\", map_info[SECT_WATER_SWIM].disp);
-  count += sprintf(buf + count, "\tn%s Boat\\\\", map_info[SECT_WATER_NOSWIM].disp);
-  count += sprintf(buf + count, "\tn%s Flying\\\\", map_info[SECT_FLYING].disp);
-  sprintf(buf + count, "\tn%s Underwater\\\\", map_info[SECT_UNDERWATER].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s You\\\\", map_info[SECT_HERE].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s City\\\\", map_info[SECT_CITY].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Swim\\\\", map_info[SECT_WATER_SWIM].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Boat\\\\", map_info[SECT_WATER_NOSWIM].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Flying\\\\", map_info[SECT_FLYING].disp);
+  snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Underwater\\\\", map_info[SECT_UNDERWATER].disp);
 
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
@@ -529,10 +528,10 @@ static void perform_map( struct char_data *ch, char *argument, bool worldmap )
   /* Set up the map */
   memset(buf, ' ', CANVAS_WIDTH);
   count = (CANVAS_WIDTH);
-  if(worldmap)
-    count += sprintf(buf + count , "\r\n%s", WorldMap(centre, size, mapshape, MAP_NORMAL));
+  if (worldmap)
+    count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\r\n%s", WorldMap(centre, size, mapshape, MAP_NORMAL));
   else
-    count += sprintf(buf + count , "\r\n%s", StringMap(centre, size));
+    count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\r\n%s", StringMap(centre, size));
   memset(buf + count, ' ', CANVAS_WIDTH);
   strcpy(buf + count + CANVAS_WIDTH, "\r\n");
   /* Paste it on */
@@ -547,9 +546,9 @@ static void perform_map( struct char_data *ch, char *argument, bool worldmap )
 }
 
 /* Display a string with the map beside it */
-void str_and_map(char *str, struct char_data *ch, room_vnum target_room ) {
+void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
   int size, centre, x, y, min, max, char_size;
-  int ew_size=0, ns_size=0;
+  int ew_size = 0, ns_size = 0;
   bool worldmap;
 
   /* Check MUDs map config options - if disabled, just show room decsription */
@@ -560,34 +559,34 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room ) {
 
   worldmap = show_worldmap(ch);
 
-  if(!PRF_FLAGGED(ch, PRF_AUTOMAP)) {
+  if (!PRF_FLAGGED(ch, PRF_AUTOMAP)) {
     send_to_char(ch, "%s", strfrmt(str, GET_SCREEN_WIDTH(ch), 1, FALSE, FALSE, FALSE));
     return;
   }
 
   size = CONFIG_MINIMAP_SIZE;
-  centre = MAX_MAP/2;
-  min = centre - 2*size;
-  max = centre + 2*size;
+  centre = MAX_MAP / 2;
+  min = centre - 2 * size;
+  max = centre + 2 * size;
 
   for (x = 0; x < MAX_MAP; ++x)
     for (y = 0; y < MAX_MAP; ++y)
-      map[x][y]= (!(y%2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
+      map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
 
   /* starts the mapping with the center room */
-MapArea(target_room, ch, centre, centre, min, max, ns_size/2, ew_size/2, worldmap ); 
+  MapArea(target_room, ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
   map[centre][centre] = SECT_HERE;
 
   /* char_size = rooms + doors + padding */
-  if(worldmap)
+  if (worldmap)
     char_size = size * 4 + 5;
   else
-    char_size = 3*(size+1) + (size) + 4;
+    char_size = 3 * (size + 1) + (size)+4;
 
-  if(worldmap)
-    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size*2 + 1, FALSE, TRUE, TRUE), WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT), " \tn"));
+  if (worldmap)
+    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size * 2 + 1, FALSE, TRUE, TRUE), WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT), " \tn"));
   else
-    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size*2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
+    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
 
 }
 

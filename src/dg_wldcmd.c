@@ -168,7 +168,7 @@ WCMD(do_wzoneecho)
     wld_log(room, "wzoneecho called for nonexistant zone");
 
   else {
-    sprintf(buf, "%s\r\n", msg);
+    snprintf(buf, MAX_INPUT_LENGTH, "%s\r\n", msg);
     send_to_zone(buf, zone);
   }
 }
@@ -196,6 +196,7 @@ WCMD(do_wdoor)
   room_data *rm;
   struct room_direction_data *newexit;
   int dir, fd, to_room, i;
+  size_t len;
 
   const char *door_field[] = {
     "purge",
@@ -227,12 +228,12 @@ WCMD(do_wdoor)
   {
     char error_log[MAX_STRING_LENGTH];
 
-    sprintf(error_log, "wdoor: invalid direction: (arg == %s) not found in:\n  [ ", direction);
+    len = snprintf(error_log, MAX_STRING_LENGTH, "wdoor: invalid direction: (arg == %s) not found in:\n  [ ", direction);
 
     for (i = 0; i < NUM_OF_DIRS; i++)
-      sprintf(error_log + strlen(error_log), "%s ", dirs[i]);
+      len += snprintf(error_log + strlen(error_log), MAX_STRING_LENGTH - len, "%s ", dirs[i]);
 
-    sprintf(error_log + strlen(error_log), "]");
+    len += snprintf(error_log + strlen(error_log), MAX_STRING_LENGTH - len, "]");
 
     wld_log(room, error_log);
     return;
@@ -466,7 +467,7 @@ WCMD(do_wload)
     char_to_room(mob, rnum);
     if (SCRIPT(room)) { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, char_script_id(mob));
+      snprintf(buf, MAX_INPUT_LENGTH, "%c%ld", UID_CHAR, char_script_id(mob));
       add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
     }
     load_mtrigger(mob);
@@ -482,7 +483,7 @@ WCMD(do_wload)
       obj_to_room(object, real_room(room->number));
       if (SCRIPT(room)) { /* It _should_ have, but it might be detached. */
         char buf[MAX_INPUT_LENGTH];
-        sprintf(buf, "%c%ld", UID_CHAR, obj_script_id(object));
+        snprintf(buf, MAX_INPUT_LENGTH, "%c%ld", UID_CHAR, obj_script_id(object));
         add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
       }
       load_otrigger(object);

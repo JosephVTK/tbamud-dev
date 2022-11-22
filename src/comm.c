@@ -2348,7 +2348,7 @@ void game_info(const char *format, ...)
   char messg[MAX_STRING_LENGTH];
   if (format == NULL)
     return;
-  sprintf(messg, "\tcInfo: \ty");
+  snprintf(messg, MAX_STRING_LENGTH, "\tcInfo: \ty");
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING)
       continue;
@@ -2669,7 +2669,7 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
           !PLR_FLAGGED(i->character, PLR_WRITING) &&
           !ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF)) {
 
-        sprintf(buf, "%s%s%s", CCYEL(i->character, C_NRM), str, CCNRM(i->character, C_NRM));
+        snprintf(buf, MAX_STRING_LENGTH, "%s%s%s", CCYEL(i->character, C_NRM), str, CCNRM(i->character, C_NRM));
         perform_act(buf, ch, obj, vict_obj, i->character);
       }
     }

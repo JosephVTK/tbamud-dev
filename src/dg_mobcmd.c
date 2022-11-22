@@ -321,7 +321,7 @@ ACMD(do_mzoneecho)
     mob_log(ch, "mzoneecho called for nonexistant zone: (arg == %s)", room_number);
 
   else {
-    sprintf(buf, "%s\r\n", msg);
+    snprintf(buf, MAX_INPUT_LENGTH, "%s\r\n", msg);
     send_to_zone(buf, zone);
   }
 }
@@ -376,7 +376,7 @@ ACMD(do_mload)
     char_to_room(mob, rnum);
     if (SCRIPT(ch)) { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, char_script_id(mob));
+      snprintf(buf, MAX_INPUT_LENGTH, "%c%ld", UID_CHAR, char_script_id(mob));
       add_var(&(SCRIPT(ch)->global_vars), "lastloaded", buf, 0);
     }
     load_mtrigger(mob);
@@ -389,7 +389,7 @@ ACMD(do_mload)
     }
     if (SCRIPT(ch)) { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, obj_script_id(object));
+      snprintf(buf, MAX_INPUT_LENGTH, "%c%ld", UID_CHAR, obj_script_id(object));
       add_var(&(SCRIPT(ch)->global_vars), "lastloaded", buf, 0);
     }
     /* special handling to make objects able to load on a person/in a container/worn etc. */
@@ -992,6 +992,7 @@ ACMD(do_mdoor)
   room_data *rm;
   struct room_direction_data *newexit;
   int dir, fd, to_room, i;
+  size_t len;
 
   const char *door_field[] = {
       "purge",
@@ -1028,12 +1029,12 @@ ACMD(do_mdoor)
   if ((dir = search_block(direction, dirs, FALSE)) == -1) {
     char error_log[MAX_STRING_LENGTH];
 
-    sprintf(error_log, "mdoor: invalid direction: (arg == %s) not found in:\n  [ ", direction);
+    len = snprintf(error_log, MAX_STRING_LENGTH, "mdoor: invalid direction: (arg == %s) not found in:\n  [ ", direction);
 
     for (i = 0; i < NUM_OF_DIRS; i++)
-      sprintf(error_log + strlen(error_log), "%s ", dirs[i]);
+      snprintf(error_log + strlen(error_log), MAX_STRING_LENGTH - len, "%s ", dirs[i]);
 
-    sprintf(error_log + strlen(error_log), "]");
+    snprintf(error_log + strlen(error_log), MAX_STRING_LENGTH - len, "]");
 
     mob_log(ch, error_log);
     return;

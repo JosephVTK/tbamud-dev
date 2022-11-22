@@ -544,7 +544,7 @@ int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
     if (TRIGGER_CHECK(t, MTRIG_CAST) &&
         (rand_number(1, 100) <= GET_TRIG_NARG(t))) {
       ADD_UID_VAR(buf, t, char_script_id(actor), "actor", 0);
-      sprintf(buf, "%d", spellnum);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
       return script_driver(&ch, t, MOB_TRIGGER, TRIG_NEW);
@@ -624,7 +624,7 @@ void time_mtrigger(char_data *ch)
   for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next) {
     if (TRIGGER_CHECK(t, MTRIG_TIME) &&
         (time_info.hours == GET_TRIG_NARG(t))) {
-      sprintf(buf, "%d", time_info.hours);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       script_driver(&ch, t, MOB_TRIGGER, TRIG_NEW);
       break;
@@ -891,7 +891,7 @@ int cast_otrigger(char_data *actor, obj_data *obj, int spellnum)
     if (TRIGGER_CHECK(t, OTRIG_CAST) &&
         (rand_number(1, 100) <= GET_TRIG_NARG(t))) {
       ADD_UID_VAR(buf, t, char_script_id(actor), "actor", 0);
-      sprintf(buf, "%d", spellnum);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
       return script_driver(&obj, t, OBJ_TRIGGER, TRIG_NEW);
@@ -980,7 +980,7 @@ void time_otrigger(obj_data *obj)
   for (t = TRIGGERS(SCRIPT(obj)); t; t = t->next) {
     if (TRIGGER_CHECK(t, OTRIG_TIME) &&
         (time_info.hours == GET_TRIG_NARG(t))) {
-      sprintf(buf, "%d", time_info.hours);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       script_driver(&obj, t, OBJ_TRIGGER, TRIG_NEW);
       break;
@@ -1161,7 +1161,7 @@ int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum
         ADD_UID_VAR(buf, t, char_script_id(vict), "victim", 0);
       if (obj)
         ADD_UID_VAR(buf, t, obj_script_id(obj), "object", 0);
-      sprintf(buf, "%d", spellnum);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
       return script_driver(&room, t, WLD_TRIGGER, TRIG_NEW);
@@ -1234,7 +1234,7 @@ void time_wtrigger(struct room_data *room)
   for (t = TRIGGERS(SCRIPT(room)); t; t = t->next) {
     if (TRIGGER_CHECK(t, WTRIG_TIME) &&
         (time_info.hours == GET_TRIG_NARG(t))) {
-      sprintf(buf, "%d", time_info.hours);
+      snprintf(buf, MAX_INPUT_LENGTH, "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       script_driver(&room, t, WLD_TRIGGER, TRIG_NEW);
       break;
