@@ -2,7 +2,7 @@
 messages.py
 
 Copyright 2022 Joseph Arnusch
-https://github.com/JosephVTK/jsIOn
+https://github.com/JosephVTK/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
 files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,61 +20,64 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 
 import json
 
+# These are trivial numbers and simply here to help show the potential benefits of utilizing the JSON file system
+# to, in this instance, maintain consistency across combat message length.
 RECOMMENDED_MIN_MESSAGE_LENGTH = 20
 RECOMMENDED_MAX_MESSAGE_LENGTH = 75
 
-try:
-    with open('../lib/misc/messages.json', 'r') as f:
-        data = json.load(f)
-except FileNotFoundError:
-    print("No messages.json found in your lib/misc folder.")
-    exit()
+if __name__ == "__main__":
+    try:
+        with open('../lib/misc/messages.json', 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("No messages.json found in your lib/misc folder.")
+        exit()
 
-spells = { }
+    spells = { }
 
-for msg_object in data:
-    message_name = f"{msg_object['type']}) {msg_object.get('name', 'No Name')}"
-    if not spells.get(message_name):
-        spells[message_name] = {
-            "num_messages" : 0,
-            "missing_messages" : False,
-            "contains_colour" : False,
-            "possible_colour_bleed" : False,
-            "long_messages" : False,
-            "short_messages" : False,
-        }
+    for msg_object in data:
+        message_name = f"{msg_object['type']}) {msg_object.get('name', 'No Name')}"
+        if not spells.get(message_name):
+            spells[message_name] = {
+                "num_messages" : 0,
+                "missing_messages" : False,
+                "contains_colour" : False,
+                "possible_colour_bleed" : False,
+                "long_messages" : False,
+                "short_messages" : False,
+                "errors" : []
+            }
 
-    for message_data in msg_object.get('messages', []):
-        spells[message_name]['num_messages'] += 1
+        for message_data in msg_object.get('messages', []):
+            spells[message_name]['num_messages'] += 1
 
-        error_messages = []
+            error_messages = []
 
-        for msg_text in message_data.values():
-            if not msg_text or msg_text == '#':
-                spells[message_name]['missing_messages'] = True
-            else:
-                if len(msg_text) < RECOMMENDED_MIN_MESSAGE_LENGTH:
-                    spells[message_name]['short_messages'] = True
-                    error_messages.append(f"  --too short: {msg_text}")
+            for msg_text in message_data.values():
+                if not msg_text or msg_text == '#':
+                    spells[message_name]['missing_messages'] = True
+                else:
+                    if len(msg_text) < RECOMMENDED_MIN_MESSAGE_LENGTH:
+                        spells[message_name]['short_messages'] = True
+                        error_messages.append(f"--too short (min {RECOMMENDED_MIN_MESSAGE_LENGTH}): {msg_text} ({len(msg_text)})")
 
-            if "@" in msg_text:
-                spells[message_name]['contains_colour'] = True
+                if "@" in msg_text:
+                    spells[message_name]['contains_colour'] = True
 
-                if len(msg_text) > 2 and msg_text[-2] != '@' and msg_text[-1] != 'n':
-                    spells[message_name]['possible_colour_bleed'] = True
-                    error_messages.append(f"  --colour bleed: {msg_text}")
+                    if len(msg_text) > 2 and msg_text[-2] != '@' and msg_text[-1] != 'n':
+                        spells[message_name]['possible_colour_bleed'] = True
+                        error_messages.append(f"--colour bleed: {msg_text}")
 
-            if len(msg_text) > RECOMMENDED_MAX_MESSAGE_LENGTH:
-                spells[message_name]['long_messages'] = True
-                error_messages.append(f"  --too long: {msg_text}")
+                if len(msg_text) > RECOMMENDED_MAX_MESSAGE_LENGTH:
+                    spells[message_name]['long_messages'] = True
+                    error_messages.append(f"--too long (max {RECOMMENDED_MAX_MESSAGE_LENGTH}): {msg_text} ({len(msg_text)})")
 
-        if error_messages:
-            print(f"\nIssues on {msg_object['type']}) {msg_object.get('name', 'No Name')}:")
-            for error in error_messages:
-                print(error)
+            if error_messages:
+                print("")
+                for error in error_messages:
+                    print(f"{msg_object['type']}) {msg_object.get('name', 'No Name')}: {error}")
 
+            spells[message_name]['errors'] += error_messages
             
-
-
-with open('message_report.txt', 'w') as f:
-    json.dump({ "spells" : spells }, f, indent=4)
+    with open('message_report.txt', 'w') as f:
+        json.dump({ "spells" : spells }, f, indent=4)

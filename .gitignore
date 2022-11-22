@@ -33,3 +33,4 @@ syslog
 # Editors
 .editorconfig
 .vscode/*
+lib/etc/config
