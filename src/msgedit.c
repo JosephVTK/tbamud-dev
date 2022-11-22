@@ -146,9 +146,9 @@ static void load_json_messages() {
       messages->next = fight_messages[i].msg;
       fight_messages[i].msg = messages;
 
-      messages->god_msg.attacker_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "god_room_msg"));
+      messages->god_msg.attacker_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "god_attacker_msg"));
       messages->god_msg.victim_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "god_victim_msg"));
-      messages->god_msg.room_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "god_attacker_msg"));
+      messages->god_msg.room_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "god_room_msg"));
 
       messages->miss_msg.attacker_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "miss_attacker_msg"));
       messages->miss_msg.victim_msg = STRING_FROM_JSON(jsonGetValueFromObject(individual_message_object, "miss_victim_msg"));
@@ -290,31 +290,31 @@ static void save_json_messages_to_disk(void) {
     new_object = jsonCreateObject(NULL);
     jsonAddObject(new_array, new_object);
 
-    if (fight_messages[i].a_type > 0 && fight_messages[i].a_type < TOP_SPELL_DEFINE)
-    {
+    if (fight_messages[i].a_type > 0 && fight_messages[i].a_type < TOP_SPELL_DEFINE) {
       jsonAddObject(new_object, jsonCreateString("name", PRINT_MSG(spell_info[fight_messages[i].a_type].name)));
       jsonAddObject(new_object, jsonCreateInt("type", fight_messages[i].a_type));
-    }
-    else
+    } else
       jsonAddObject(new_object, jsonCreateInt("type", fight_messages[i].a_type));
 
     messages = jsonCreateArray("messages");
     jsonAddObject(new_object, messages);
 
-    for (msg = fight_messages[i].msg; msg; msg = msg->next, cnt++)
-    {
+    for (msg = fight_messages[i].msg; msg; msg = msg->next, cnt++) {
       message_object = jsonCreateObject(NULL);
       jsonAddObject(messages, message_object);
 
       jsonAddObject(message_object, jsonCreateString("die_attacker_msg", PRINT_MSG(msg->die_msg.attacker_msg)));
       jsonAddObject(message_object, jsonCreateString("die_victim_msg", PRINT_MSG(msg->die_msg.victim_msg)));
       jsonAddObject(message_object, jsonCreateString("die_room_msg", PRINT_MSG(msg->die_msg.room_msg)));
+
       jsonAddObject(message_object, jsonCreateString("miss_attacker_msg", PRINT_MSG(msg->miss_msg.attacker_msg)));
       jsonAddObject(message_object, jsonCreateString("miss_victim_msg", PRINT_MSG(msg->miss_msg.victim_msg)));
       jsonAddObject(message_object, jsonCreateString("miss_room_msg", PRINT_MSG(msg->miss_msg.room_msg)));
+
       jsonAddObject(message_object, jsonCreateString("hit_attacker_msg", PRINT_MSG(msg->hit_msg.attacker_msg)));
       jsonAddObject(message_object, jsonCreateString("hit_victim_msg", PRINT_MSG(msg->hit_msg.victim_msg)));
       jsonAddObject(message_object, jsonCreateString("hit_room_msg", PRINT_MSG(msg->hit_msg.room_msg)));
+
       jsonAddObject(message_object, jsonCreateString("god_attacker_msg", PRINT_MSG(msg->god_msg.attacker_msg)));
       jsonAddObject(message_object, jsonCreateString("god_victim_msg", PRINT_MSG(msg->god_msg.victim_msg)));
       jsonAddObject(message_object, jsonCreateString("god_room_msg", PRINT_MSG(msg->god_msg.room_msg)));
