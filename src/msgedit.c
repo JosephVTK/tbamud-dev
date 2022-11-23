@@ -93,16 +93,15 @@ static void load_json_messages() {
         
         We booted the server with the intent of using the json messages file but it didn't exist.
         Let's load the default messages (AND LEAVE IT INTACT AS A BACKUP), and then write it to the
-        disk as json for the next load time.
-
+        disk as json for the next load time. -JA 2022
     */
-
     load_default_messages();
     save_json_messages_to_disk();
     log("CONVERSION: Created new json messages file.");
     return;
   }
 
+  /* Initialize our initial structs (repurposed from original)*/
   for (i = 0; i < MAX_MESSAGES; i++) {
     fight_messages[i].a_type = 0;
     fight_messages[i].number_of_attacks = 0;
@@ -110,6 +109,9 @@ static void load_json_messages() {
   }
 
   for (msg_object = base_object->child, i = 0; msg_object != NULL && i < MAX_MESSAGES; msg_object = msg_object->next) {
+
+    /* Ensure our msg_object contains a type attribute (SPELL_NUM) and confirm that is infact an integer. Once
+       We are sure then we can assign our integer to msg_type for use later on. */
     type_object = jsonGetValueFromObject(msg_object, "type");
     if (type_object == NULL) {
       log("SYSERR: Object in MESSAGES.json file without 'Type'.");
@@ -119,14 +121,17 @@ static void load_json_messages() {
       log("SYSERR: Object in MESSAGES.json file with corrupted 'Type'.");
       exit(1);
     }
-
     msg_type = type_object->j_integer;
+
+    /*********************************************************************************************************/
 
     if (i >= MAX_MESSAGES) {
       log("SYSERR: Too many combat messages.  Increase MAX_MESSAGES and recompile.");
       exit(1);
     }
 
+    /* Each msg_object SHOULD contain an array of 1+ group of messages. Here we confirm the array key exists and that it
+       is in fact an array. */
     msg_struct_array = jsonGetValueFromObject(msg_object, "messages");
 
     if (msg_struct_array == NULL) {
@@ -138,6 +143,8 @@ static void load_json_messages() {
       log("SYSERR: Object in MESSAGES.json has corrupt messages array.");
       exit(1);
     }
+
+    /*********************************************************************************************************/
 
     for (individual_message_object = msg_struct_array->child; individual_message_object != NULL; individual_message_object = individual_message_object->next) {
       CREATE(messages, struct message_type, 1);

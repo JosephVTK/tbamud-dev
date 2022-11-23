@@ -1386,9 +1386,9 @@ static void eval_op(char *op, char *lhs, char *rhs, char *result, void *go,
     rhs++;
 
   for (p = (unsigned char *) lhs; *p; p++);
-  for (--p; isspace(*p) && ((char *)p > lhs); *p-- = '\0');
+  for (--p; isspace(*p) && ((char *)p > lhs); *p-- = '\0'); // Valgrind -- ==8468== Use of uninitialised value of size 8
   for (p = (unsigned char *) rhs; *p; p++);
-  for (--p; isspace(*p) && ((char *)p > rhs); *p-- = '\0');
+  for (--p; isspace(*p) && ((char *)p > rhs); *p-- = '\0'); // Valgrind -- ==9269== Use of uninitialised value of size 8
 
 
   /* find the op, and figure out the value */
@@ -1528,7 +1528,7 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
 
 /* Evaluates expr if it is in the form lhs op rhs, and copies answer in result.
  * Returns 1 if expr is evaluated, else 0. */
-static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_data *sc,
+static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_data *sc, // Valgrind -- ==9269==  Uninitialised value was created by a stack allocation
                     trig_data *trig, int type)
 {
   char *p, *tokens[MAX_INPUT_LENGTH];
