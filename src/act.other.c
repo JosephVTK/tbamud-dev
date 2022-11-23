@@ -546,7 +546,6 @@ ACMD(do_split)
     if (rest) {
       send_to_char(ch, "%d coin%s %s not splitable, so you keep the money.\r\n",
 		rest, (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
-      increase_gold(ch, rest);
     }
   } else {
     send_to_char(ch, "How many coins do you wish to split with your group?\r\n");
@@ -870,9 +869,9 @@ static void show_happyhour(struct char_data *ch)
       else
         secs_left = 0;
 
-      sprintf(happyqp,   "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP,   CCNRM(ch, C_NRM));
-      sprintf(happygold, "%s+%d%%%s to Gold gained per kill\r\n",  CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
-      sprintf(happyexp,  "%s+%d%%%s to Experience per kill\r\n",   CCYEL(ch, C_NRM), HAPPY_EXP,  CCNRM(ch, C_NRM));
+      snprintf(happyqp, sizeof(happyqp),   "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP,   CCNRM(ch, C_NRM));
+      snprintf(happygold, sizeof(happygold), "%s+%d%%%s to Gold gained per kill\r\n",  CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
+      snprintf(happyexp, sizeof(happyexp),  "%s+%d%%%s to Experience per kill\r\n",   CCYEL(ch, C_NRM), HAPPY_EXP,  CCNRM(ch, C_NRM));
 
       send_to_char(ch, "tbaMUD Happy Hour!\r\n"
                        "------------------\r\n"
