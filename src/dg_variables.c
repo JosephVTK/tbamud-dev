@@ -1586,14 +1586,13 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
   /*lets just empty these to start with*/
   *repl_str = *tmp = *tmp2 = '\0';
 
-  p = strcpy(tmp, line);
+  strlcpy(tmp, line, MAX_INPUT_LENGTH);
+  p = tmp;
   subfield_p = subfield;
 
   left = MAX_INPUT_LENGTH - 1;
 
   while (*p && (left > 0)) {
-
-
     /* copy until we find the first % */
     while (*p && (*p != '%') && (left > 0)) {
       *(buf++) = *(p++);
@@ -1653,7 +1652,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
 
       if (*subfield) {
         var_subst(go, sc, trig, type, subfield, tmp2);
-        strcpy(subfield, tmp2);
+        strlcpy(subfield, tmp2, MAX_INPUT_LENGTH);
       }
 
       find_replacement(go, sc, trig, type, var, field, subfield, repl_str, sizeof(repl_str));

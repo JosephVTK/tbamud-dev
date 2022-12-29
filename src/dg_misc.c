@@ -63,7 +63,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
       return;
   }
 
-  strcpy(orig_cmd, cmd);
+  strlcpy(orig_cmd, cmd, MAX_INPUT_LENGTH);
   /* get: blank, spell name, target name */
   s = strtok(cmd, "'");
   if (s == NULL) {
@@ -89,7 +89,8 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
 
   /* Find the target */
   if (t != NULL) {
-    one_argument(strcpy(buf2, t), t);
+    strlcpy(buf2, t, MAX_STRING_LENGTH);
+    one_argument(buf2, t);
     skip_spaces(&t);
   }
   if (!IS_SET(SINFO.targets, TAR_IGNORE) && t != NULL && *t) {

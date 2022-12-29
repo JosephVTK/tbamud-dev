@@ -1516,7 +1516,7 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
   if (eval_lhs_op_rhs(line, result, go, sc, trig, type));
 
   else if (*line == '(') {
-    strcpy(expr, line);
+    strlcpy(expr, line, MAX_INPUT_LENGTH);
     p = matching_paren(expr);
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);
@@ -2397,12 +2397,13 @@ static void extract_value(struct script_data *sc, trig_data *trig, char *cmd)
 {
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
   char *buf3;
-  char to[128];
+  int TO_LENGTH = 128;
+  char to[TO_LENGTH];
   int num;
 
   buf3 = any_one_arg(cmd, buf);
   half_chop(buf3, buf2, buf);
-  strcpy(to, buf2);
+  strlcpy(to, buf2, TO_LENGTH);
 
   num = atoi(buf);
   if (num < 1) {

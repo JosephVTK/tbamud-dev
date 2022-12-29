@@ -66,8 +66,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
   }
 
   if (obj->action_description) {
-
-    strcpy(buf1, obj->action_description);
+    strlcpy(buf1, obj->action_description, MAX_STRING_LENGTH);
     strip_cr(buf1);
   } else
     *buf1 = 0;
@@ -141,7 +140,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
         if (!*ex_desc->keyword || !*ex_desc->description) {
           continue;
         }
-        strcpy(buf1, ex_desc->description);
+        strlcpy(buf1, ex_desc->description, MAX_STRING_LENGTH);
         strip_cr(buf1);
         fprintf(fp, "EDes:\n"
                  "%s~\n"
@@ -311,7 +310,8 @@ int Crash_delete_crashfile(struct char_data *ch)
 
 int Crash_clean_file(char *name)
 {
-  char filename[MAX_INPUT_LENGTH], filetype[20];
+  int FILETYPE_LENGTH = 20;
+  char filename[MAX_INPUT_LENGTH], filetype[FILETYPE_LENGTH];
   int numread;
   FILE *fl;
   int rentcode, timed, netcost, gold, account, nitems;
@@ -342,16 +342,16 @@ int Crash_clean_file(char *name)
       Crash_delete_file(name);
       switch (rentcode) {
       case RENT_CRASH:
-        strcpy(filetype, "crash");
+        strlcpy(filetype, "crash", FILETYPE_LENGTH);
         break;
       case RENT_FORCED:
-        strcpy(filetype, "forced rent");
+        strlcpy(filetype, "forced rent", FILETYPE_LENGTH);
         break;
       case RENT_TIMEDOUT:
-        strcpy(filetype, "idlesave");
+        strlcpy(filetype, "idlesave", FILETYPE_LENGTH);
         break;
       default:
-        strcpy(filetype, "UNKNOWN!");
+        strlcpy(filetype, "UNKNOWN!", FILETYPE_LENGTH);
         break;
       }
       log("    Deleting %s's %s file.", name, filetype);

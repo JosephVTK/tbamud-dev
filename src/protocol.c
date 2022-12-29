@@ -1259,7 +1259,7 @@ void MSDPSetTable( descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
 
          char *pTable = (char *) malloc(strlen(apValue) + 3); /* 3: START, STOP, NUL */
 
-         strcpy(pTable, MsdpTableStart);
+         strcpy(pTable, MsdpTableStart); /* strcpy safe */
          strcat(pTable, apValue);
          strcat(pTable, MsdpTableStop);
 
@@ -1295,7 +1295,7 @@ void MSDPSetArray( descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
 
          char *pArray = (char *) malloc(strlen(apValue) + 3); /* 3: START, STOP, NUL */
 
-         strcpy(pArray, MsdpArrayStart);
+         strcpy(pArray, MsdpArrayStart); /* strcpy safe */
          strcat(pArray, apValue);
          strcat(pArray, MsdpArrayStop);
 
@@ -2501,7 +2501,7 @@ static char *AllocString( const char *apString )
       int Size = strlen(apString);
       pResult = (char *) malloc(Size+1);
       if ( pResult != NULL )
-         strcpy( pResult, apString );
+         strcpy( pResult, apString ); /* strcpy safe */
    }
 
    return pResult;

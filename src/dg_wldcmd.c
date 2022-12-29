@@ -275,8 +275,8 @@ WCMD(do_wdoor)
       if (newexit->general_description)
         free(newexit->general_description);
       CREATE(newexit->general_description, char, strlen(value) + 3);
-      strcpy(newexit->general_description, value);
-      strcat(newexit->general_description, "\r\n");
+      strcpy(newexit->general_description, value); /* strcpy safe: Allocated above*/
+      strcat(newexit->general_description, "\r\n");/* strcat safe: Allocated above*/
       break;
     case 2: /* flags       */
       newexit->exit_info = (sh_int)asciiflag_conv(value);
@@ -288,7 +288,7 @@ WCMD(do_wdoor)
       if (newexit->keyword)
         free(newexit->keyword);
       CREATE(newexit->keyword, char, strlen(value) + 1);
-      strcpy(newexit->keyword, value);
+      strcpy(newexit->keyword, value); /* strcpy safe: Allocated above*/
       break;
     case 5: /* room        */
       if ((to_room = real_room(atoi(value))) != NOWHERE)

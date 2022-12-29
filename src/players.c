@@ -75,7 +75,7 @@ void build_player_index(void)
     sscanf(line, "%ld %s %d %s %ld", &player_table[i].id, arg2,
       &player_table[i].level, bits, (long *)&player_table[i].last);
     CREATE(player_table[i].name, char, strlen(arg2) + 1);
-    strcpy(player_table[i].name, arg2);
+    strcpy(player_table[i].name, arg2); /* Safe as allocated above */
     player_table[i].flags = asciiflag_conv(bits);
     top_idnum = MAX(top_idnum, player_table[i].id);
   }
@@ -405,7 +405,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'P':
        if (!strcmp(tag, "Page"))  GET_PAGE_LENGTH(ch) = atoi(line);
-	else if (!strcmp(tag, "Pass"))	strcpy(GET_PASSWD(ch), line);
+	else if (!strcmp(tag, "Pass"))	strlcpy(GET_PASSWD(ch), line, MAX_PWD_LENGTH);
 	else if (!strcmp(tag, "Plyd"))	ch->player.time.played	= atoi(line);
 	else if (!strcmp(tag, "PfIn"))	POOFIN(ch)		= strdup(line);
 	else if (!strcmp(tag, "PfOt"))	POOFOUT(ch)		= strdup(line);
@@ -567,7 +567,7 @@ void save_char(struct char_data * ch)
   if (GET_PASSWD(ch))				fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
   if (GET_TITLE(ch))				fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
   if (ch->player.description && *ch->player.description) {
-    strcpy(buf, ch->player.description);
+    strlcpy(buf, ch->player.description, MAX_STRING_LENGTH);
     strip_cr(buf);
     fprintf(fl, "Desc:\n%s~\n", buf);
   }

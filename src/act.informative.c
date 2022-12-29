@@ -1491,7 +1491,7 @@ ACMD(do_users)
     if (*d->host)
       len = snprintf(line + strlen(line), sizeof(line) - len, "[%s]\r\n", d->host);
     else
-      strlcat(line, "[Hostname unknown]\r\n", LINE_LENGTH);
+      strncat(line, "[Hostname unknown]\r\n", LINE_LENGTH);
 
     if (STATE(d) != CON_PLAYING) {
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
