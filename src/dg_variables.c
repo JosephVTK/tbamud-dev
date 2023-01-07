@@ -257,25 +257,25 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   char *name;
   int num, count, i, j, doors;
 
-  char *log_cmd[] = { "mlog ",        "olog ",        "wlog " };
-  char *send_cmd[] = { "msend ",       "osend ",       "wsend " };
-  char *echo_cmd[] = { "mecho ",       "oecho ",       "wecho " };
-  char *echoaround_cmd[] = { "mechoaround ", "oechoaround ", "wechoaround " };
-  char *door[] = { "mdoor ",       "odoor ",       "wdoor " };
-  char *force[] = { "mforce ",      "oforce ",      "wforce " };
-  char *load[] = { "mload ",       "oload ",       "wload " };
-  char *purge[] = { "mpurge ",      "opurge ",      "wpurge " };
-  char *teleport[] = { "mteleport ",   "oteleport ",   "wteleport " };
+  char *log_cmd[]        = {"mlog ",        "olog ",        "wlog "       };
+  char *send_cmd[]       = {"msend ",       "osend ",       "wsend "      };
+  char *echo_cmd[]       = {"mecho ",       "oecho ",       "wecho "      };
+  char *echoaround_cmd[] = {"mechoaround ", "oechoaround ", "wechoaround "};
+  char *door[]           = {"mdoor ",       "odoor ",       "wdoor "      };
+  char *force[]          = {"mforce ",      "oforce ",      "wforce "     };
+  char *load[]           = {"mload ",       "oload ",       "wload "      };
+  char *purge[]          = {"mpurge ",      "opurge ",      "wpurge "     };
+  char *teleport[]       = {"mteleport ",   "oteleport ",   "wteleport "  };
   /* the x kills a 'shadow' warning in gcc. */
-  char *xdamage[] = { "mdamage ",     "odamage ",     "wdamage " };
-  char *zoneecho[] = { "mzoneecho ",   "ozoneecho ",   "wzoneecho " };
-  char *asound[] = { "masound ",     "oasound ",     "wasound " };
-  char *at[] = { "mat ",         "oat ",         "wat " };
+  char *xdamage[]        = {"mdamage ",     "odamage ",     "wdamage "    };
+  char *zoneecho[]       = {"mzoneecho ",   "ozoneecho ",   "wzoneecho "  };
+  char *asound[]         = {"masound ",     "oasound ",     "wasound "    };
+  char *at[]             = {"mat ",         "oat ",         "wat "        };
   /* there is no such thing as wtransform, thus the wecho below  */
-  char *transform[] = { "mtransform ",  "otransform ",  "wecho " };
-  char *recho[] = { "mrecho ",      "orecho ",      "wrecho " };
+  char *transform[]      = {"mtransform ",  "otransform ",  "wecho "      };
+  char *recho[]          = {"mrecho ",      "orecho ",      "wrecho "     };
   /* there is no such thing as mmove, thus the mecho below  */
-  char *omove[] = { "mecho ",      "omove ",      "wmove " };
+  char *omove[]          = {"mecho ",      "omove ",      "wmove "     };
 
   *str = '\0';
 
@@ -1586,14 +1586,13 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
   /*lets just empty these to start with*/
   *repl_str = *tmp = *tmp2 = '\0';
 
-  p = strcpy(tmp, line);
+  strlcpy(tmp, line, MAX_INPUT_LENGTH);
+  p = tmp;
   subfield_p = subfield;
 
   left = MAX_INPUT_LENGTH - 1;
 
   while (*p && (left > 0)) {
-
-
     /* copy until we find the first % */
     while (*p && (*p != '%') && (left > 0)) {
       *(buf++) = *(p++);
@@ -1653,7 +1652,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
 
       if (*subfield) {
         var_subst(go, sc, trig, type, subfield, tmp2);
-        strcpy(subfield, tmp2);
+        strlcpy(subfield, tmp2, MAX_INPUT_LENGTH);
       }
 
       find_replacement(go, sc, trig, type, var, field, subfield, repl_str, sizeof(repl_str));

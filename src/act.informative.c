@@ -728,9 +728,9 @@ ACMD(do_look)
 
     if (subcmd == SCMD_READ) {
       if (!*arg)
-	send_to_char(ch, "Read what?\r\n");
+        send_to_char(ch, "Read what?\r\n");
       else
-	look_at_target(ch, strcpy(tempsave, arg));
+        look_at_target(ch, strcpy(tempsave, arg)); /* strcpy: OK */
       return;
     }
     if (!*arg)			/* "look" alone, without an argument at all */
@@ -741,21 +741,21 @@ ACMD(do_look)
     else if ((look_type = search_block(arg, dirs, FALSE)) >= 0)
       look_in_direction(ch, look_type);
     else if (is_abbrev(arg, "at"))
-      look_at_target(ch, strcpy(tempsave, arg2));
+      look_at_target(ch, strcpy(tempsave, arg2)); /* strcpy: OK */
     else if (is_abbrev(arg, "around")) {
       struct extra_descr_data *i;
 
       for (i = world[IN_ROOM(ch)].ex_description; i; i = i->next) {
         if (*i->keyword != '.') {
           send_to_char(ch, "%s%s:\r\n%s",
-          (found ? "\r\n" : ""), i->keyword, i->description);
+            (found ? "\r\n" : ""), i->keyword, i->description);
           found = 1;
         }
       }
       if (!found)
-         send_to_char(ch, "You couldn't find anything noticeable.\r\n");
+        send_to_char(ch, "You couldn't find anything noticeable.\r\n");
     } else
-      look_at_target(ch, strcpy(tempsave, arg));
+      look_at_target(ch, strcpy(tempsave, arg)); /* strcpy: OK */
   }
 }
 
@@ -1466,20 +1466,20 @@ ACMD(do_users)
         snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->character),
           CLASS_ABBR(d->character));
     } else
-      strcpy(classname, "   -   ");
+      strlcpy(classname, "   -   ", sizeof(classname));
 
     strftime(timestr, sizeof(timestr), "%H:%M:%S", localtime(&(d->login_time)));
 
     if (STATE(d) == CON_PLAYING && d->original)
-      strcpy(state, "Switched");
+      strlcpy(state, "Switched", sizeof(state));
     else
-      strcpy(state, connected_types[STATE(d)]);
+      strlcpy(state, connected_types[STATE(d)], sizeof(state));
 
     if (d->character && STATE(d) == CON_PLAYING)
       snprintf(idletime, sizeof(idletime), "%5d", d->character->char_specials.timer *
         SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
-      strcpy(idletime, "     ");
+      strlcpy(idletime, "     ", sizeof(idletime));
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
       d->original && d->original->player.name ? d->original->player.name :
@@ -1490,11 +1490,11 @@ ACMD(do_users)
     if (*d->host)
       len = snprintf(line + strlen(line), sizeof(line) - len, "[%s]\r\n", d->host);
     else
-      strcat(line, "[Hostname unknown]\r\n");
+      strncat(line, "[Hostname unknown]\r\n", sizeof(line));
 
     if (STATE(d) != CON_PLAYING) {
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
-      strcpy(line, line2);
+      strlcpy(line, line2, sizeof(line));
     }
     if (STATE(d) != CON_PLAYING || (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character))) {
       send_to_char(ch, "%s", line);
@@ -1834,7 +1834,7 @@ ACMD(do_toggle)
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
   const char *types[] = { "off", "brief", "normal", "on", "\n" };
 
-    const struct {
+  const struct {
     char *command;
     bitvector_t toggle; /* this needs changing once hashmaps are implemented */
     char min_level;
@@ -1944,18 +1944,18 @@ ACMD(do_toggle)
 
   if (!*arg) {
     if (!GET_WIMP_LEV(ch))
-      strcpy(buf2, "OFF");        /* strcpy: OK */
+      strlcpy(buf2, "OFF", sizeof(buf2));
     else
       snprintf(buf2, sizeof(buf2), "%-3.3d", GET_WIMP_LEV(ch));  /* sprintf: OK */
 
-	if (GET_LEVEL(ch) == LVL_IMPL) {
+    if (GET_LEVEL(ch) == LVL_IMPL) {
       send_to_char(ch,
         " SlowNameserver: %-3s   "
-	"                        "
-	" Trackthru Doors: %-3s\r\n",
+        "                        "
+        " Trackthru Doors: %-3s\r\n",
 
-	ONOFF(CONFIG_NS_IS_SLOW),
-	ONOFF(CONFIG_TRACK_T_DOORS));
+        ONOFF(CONFIG_NS_IS_SLOW),
+        ONOFF(CONFIG_TRACK_T_DOORS));
     }
 
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
@@ -1983,78 +1983,78 @@ ACMD(do_toggle)
         ONOFF(PRF_FLAGGED(ch, PRF_ZONERESETS)));
     }
 
-  send_to_char(ch,
-    "Hit Pnt Display: %-3s    "
-    "          Brief: %-3s    "
-    "     Summonable: %-3s\r\n"
+    send_to_char(ch,
+      "Hit Pnt Display: %-3s    "
+      "          Brief: %-3s    "
+      "     Summonable: %-3s\r\n"
 
-    "   Move Display: %-3s    "
-    "        Compact: %-3s    "
-    "          Quest: %-3s\r\n"
+      "   Move Display: %-3s    "
+      "        Compact: %-3s    "
+      "          Quest: %-3s\r\n"
 
-    "   Mana Display: %-3s    "
-    "         NoTell: %-3s    "
-    "       NoRepeat: %-3s\r\n"
+      "   Mana Display: %-3s    "
+      "         NoTell: %-3s    "
+      "       NoRepeat: %-3s\r\n"
 
-    "      AutoExits: %-3s    "
-    "        NoShout: %-3s    "
-    "          Wimpy: %-3s\r\n"
+      "      AutoExits: %-3s    "
+      "        NoShout: %-3s    "
+      "          Wimpy: %-3s\r\n"
 
-    "       NoGossip: %-3s    "
-    "      NoAuction: %-3s    "
-    "        NoGrats: %-3s\r\n"
+      "       NoGossip: %-3s    "
+      "      NoAuction: %-3s    "
+      "        NoGrats: %-3s\r\n"
 
-    "       AutoLoot: %-3s    "
-    "       AutoGold: %-3s    "
-    "      AutoSplit: %-3s\r\n"
+      "       AutoLoot: %-3s    "
+      "       AutoGold: %-3s    "
+      "      AutoSplit: %-3s\r\n"
 
-    "        AutoSac: %-3s    "
-    "     AutoAssist: %-3s    "
-    "        AutoMap: %-3s\r\n"
+      "        AutoSac: %-3s    "
+      "     AutoAssist: %-3s    "
+      "        AutoMap: %-3s\r\n"
 
-    "     Pagelength: %-3d    "
-    "    Screenwidth: %-3d    "
-    "            AFK: %-3s\r\n"
+      "     Pagelength: %-3d    "
+      "    Screenwidth: %-3d    "
+      "            AFK: %-3s\r\n"
 
-    "        Autokey: %-3s    "
-    "       Autodoor: %-3s    "
-    "          Color: %s     \r\n ",
+      "        Autokey: %-3s    "
+      "       Autodoor: %-3s    "
+      "          Color: %s     \r\n ",
 
-    ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
-    ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
-    ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
+      ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
+      ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
+      ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)),
-    ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
-    ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
+      ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)),
+      ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_DISPMANA)),
-    ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
-    ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_DISPMANA)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)),
-    ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)),
-    buf2,
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)),
+      buf2,
 
-    ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)),
-    ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
-    ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)),
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)),
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
 
-    GET_PAGE_LENGTH(ch),
-    GET_SCREEN_WIDTH(ch),
-    ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
+      GET_PAGE_LENGTH(ch),
+      GET_SCREEN_WIDTH(ch),
+      ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
 
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
-    types[COLOR_LEV(ch)]);
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
+      ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
+      types[COLOR_LEV(ch)]);
     return;
   }
 
@@ -2116,18 +2116,18 @@ ACMD(do_toggle)
     }
     result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
     if (PRF_FLAGGED(ch, PRF_BUILDWALK)) {
-      for (i=0; *arg2 && *(sector_types[i]) != '\n'; i++)
+      for (i = 0; *arg2 && *(sector_types[i]) != '\n'; i++)
         if (is_abbrev(arg2, sector_types[i]))
           break;
       if (*(sector_types[i]) == '\n')
-        i=0;
+        i = 0;
       GET_BUILDWALK_SECTOR(ch) = i;
       send_to_char(ch, "Default sector type is %s\r\n", sector_types[i]);
       mudlog(CMP, GET_LEVEL(ch), TRUE,
-             "OLC: %s turned buildwalk on.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+        "OLC: %s turned buildwalk on.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
     } else
       mudlog(CMP, GET_LEVEL(ch), TRUE,
-             "OLC: %s turned buildwalk off.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+        "OLC: %s turned buildwalk off.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
     break;
   case SCMD_AFK:
     if ((result = PRF_TOG_CHK(ch, PRF_AFK)))

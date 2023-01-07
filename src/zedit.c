@@ -420,7 +420,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
   clear_screen(d);
 
   sprintbitarray(OLC_ZONE(d)->zone_flags, zone_bits, ZN_ARRAY_MAX, buf1);
-  levels_set = zedit_get_levels(d, lev_string, 50);
+  levels_set = zedit_get_levels(d, lev_string, sizeof(lev_string));
 
   /* Menu header */
   send_to_char(d->character,

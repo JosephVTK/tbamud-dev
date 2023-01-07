@@ -167,7 +167,7 @@ void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num)
   /* convert cmdlist to a char string */
   c = trig->cmdlist;
   CREATE(OLC_STORAGE(d), char, MAX_CMD_LENGTH);
-  strcpy(OLC_STORAGE(d), "");
+  strcpy(OLC_STORAGE(d), "");  /* strcpy: OK : Memory allocated above */
 
   while (c)
   {
@@ -840,7 +840,7 @@ void trigedit_save(struct descriptor_data *d)
       }
 
       if (!buf[0])
-        strcpy(buf, "* Empty script");
+        strlcpy(buf, "* Empty script", MAX_CMD_LENGTH);
 
       fprintf(trig_file, "%s%c\n", buf, STRING_TERMINATOR);
       *buf = '\0';

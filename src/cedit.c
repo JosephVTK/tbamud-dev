@@ -386,25 +386,25 @@ int save_config( IDXTYPE nowhere )
               "script_players = %d\n\n", CONFIG_SCRIPT_PLAYERS);
 
 
-  strcpy(buf, CONFIG_OK);
+  strlcpy(buf, CONFIG_OK, MAX_STRING_LENGTH);
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when OK is all that is needed.\n"
               "ok = %s\n\n", buf);
 
-  strcpy(buf, CONFIG_HUH);
+  strlcpy(buf, CONFIG_HUH, MAX_STRING_LENGTH);
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players for an unrecognized command.\n"
               "huh = %s\n\n", buf);
 
-  strcpy(buf, CONFIG_NOPERSON);
+  strlcpy(buf, CONFIG_NOPERSON, MAX_STRING_LENGTH);
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when noone is available.\n"
               "noperson = %s\n\n", buf);
 
-  strcpy(buf, CONFIG_NOEFFECT);
+  strlcpy(buf, CONFIG_NOEFFECT, MAX_STRING_LENGTH);
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when an effect fails.\n"
@@ -466,14 +466,14 @@ int save_config( IDXTYPE nowhere )
               CONFIG_DFLT_PORT);
 
   if (CONFIG_DFLT_IP) {
-    strcpy(buf, CONFIG_DFLT_IP);
+    strlcpy(buf, CONFIG_DFLT_IP, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* IP address to which the MUD should bind.\nDFLT_IP = %s\n\n", buf);
   }
 
   if (CONFIG_DFLT_DIR) {
-    strcpy(buf, CONFIG_DFLT_DIR);
+    strlcpy(buf, CONFIG_DFLT_DIR, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* default directory to use as data directory.\n"
@@ -481,7 +481,7 @@ int save_config( IDXTYPE nowhere )
   }
 
   if (CONFIG_LOGNAME) {
-    strcpy(buf, CONFIG_LOGNAME);
+    strlcpy(buf, CONFIG_LOGNAME, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* What file to log messages to (ex: 'log/syslog').\n"
@@ -518,7 +518,7 @@ int save_config( IDXTYPE nowhere )
               CONFIG_OLC_SAVE);
 
   if (CONFIG_MENU) {
-    strcpy(buf, CONFIG_MENU);
+    strlcpy(buf, CONFIG_MENU, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* The entrance/exit menu.\n"
@@ -526,14 +526,14 @@ int save_config( IDXTYPE nowhere )
   }
 
   if (CONFIG_WELC_MESSG) {
-    strcpy(buf, CONFIG_WELC_MESSG);
+    strlcpy(buf, CONFIG_WELC_MESSG, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* The welcome message.\nWELC_MESSG = \n%s~\n\n", convert_from_tabs(buf));
   }
 
   if (CONFIG_START_MESSG) {
-    strcpy(buf, CONFIG_START_MESSG);
+    strlcpy(buf, CONFIG_START_MESSG, MAX_STRING_LENGTH);
     strip_cr(buf);
 
     fprintf(fl, "* NEWBIE start message.\n"

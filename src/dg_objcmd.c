@@ -636,7 +636,7 @@ static OCMD(do_odoor)
         if (newexit->general_description)
           free(newexit->general_description);
         CREATE(newexit->general_description, char, strlen(value) + 3);
-        strcpy(newexit->general_description, value);
+        strcpy(newexit->general_description, value);  /* strcpy: OK : Memory allocated above */
         strcat(newexit->general_description, "\r\n"); /* strcat : OK */
         break;
       case 2:  /* flags       */
@@ -649,7 +649,7 @@ static OCMD(do_odoor)
         if (newexit->keyword)
           free(newexit->keyword);
         CREATE(newexit->keyword, char, strlen(value) + 1);
-        strcpy(newexit->keyword, value);
+        strcpy(newexit->keyword, value);  /* strcpy: OK : Memory allocated above */
         break;
       case 5:  /* room        */
         if ((to_room = real_room(atoi(value))) != NOWHERE)

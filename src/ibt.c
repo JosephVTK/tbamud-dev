@@ -447,7 +447,7 @@ static bool is_ibt_logger(IBT_DATA *ibtData, struct char_data *ch)
 ACMD(do_ibt)
 {
   char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH], *arg_text, imp[30], timestr[128];
+  char buf[MAX_STRING_LENGTH], *arg_text, imp[30], timestr[129];
   int i, num_res, num_unres;
   size_t len = 0;
   IBT_DATA *ibtData, *first_ibt;
@@ -514,7 +514,7 @@ ACMD(do_ibt)
         if (ibtData->dated != 0) {
           strftime(timestr, sizeof(timestr), "%c", localtime(&(ibtData->dated)));
         } else {
-          strcpy(timestr, "Unknown");
+          strlcpy(timestr, "Unknown", sizeof(timestr));
         }
         send_to_char(ch, "%sSubmitted: %s%s\r\n", QCYN, QYEL, timestr);
         if (GET_LEVEL(ch) >= LVL_IMMORT) {

@@ -64,6 +64,15 @@
 #define MAP_NORMAL  0
 #define MAP_COMPACT 1
 
+/* strcpy 
+  Many of the functions within asciimap.c contain uses of strcpy() and the safety of some of the calls
+  are questionable. Unfortunately a lot of this code was not written with readability at the forefront and
+  as such it will require a little more then my currently alotted time to thoroughly inspect and improve upon the functionality
+  within without causing unneccessary issues.
+  
+  TODO: Saved for another day - Vat 2022
+*/
+
 static bool show_worldmap(struct char_data *ch);
 
 struct map_info_type
@@ -379,25 +388,25 @@ static char *StringMap(int centre, int size)
   return strmap;
 }
 
-static char *WorldMap(int centre, int size, int mapshape, int maptype )
+static char* WorldMap(int centre, int size, int mapshape, int maptype)
 {
-  static char strmap[MAX_MAP*MAX_MAP*4 + MAX_MAP*2 + 1];
-  char *mp = strmap;
+  static char strmap[MAX_MAP * MAX_MAP * 4 + MAX_MAP * 2 + 1];
+  char* mp = strmap;
   int x, y;
   int xmin, xmax, ymin, ymax;
 
-  switch(maptype) {
-    case MAP_COMPACT:
-      xmin = centre - size;
-      xmax = centre + size;
-      ymin = centre - 2*size;
-      ymax = centre + 2*size;
-      break;
-    default:
-      xmin = centre - CANVAS_HEIGHT/2;
-      xmax = centre + CANVAS_HEIGHT/2;
-      ymin = centre - CANVAS_WIDTH/2;
-      ymax = centre + CANVAS_WIDTH/2;
+  switch (maptype) {
+  case MAP_COMPACT:
+    xmin = centre - size;
+    xmax = centre + size;
+    ymin = centre - 2 * size;
+    ymax = centre + 2 * size;
+    break;
+  default:
+    xmin = centre - CANVAS_HEIGHT / 2;
+    xmax = centre + CANVAS_HEIGHT / 2;
+    ymin = centre - CANVAS_WIDTH / 2;
+    ymax = centre + CANVAS_WIDTH / 2;
   }
 
 
@@ -406,20 +415,20 @@ static char *WorldMap(int centre, int size, int mapshape, int maptype )
   for (x = xmin; x <= xmax; x++) {
     /* every column */
     /* for (y = centre - (2*size) ; y <= centre + (2*size) ; y++) {  */
-    for (y = ymin ; y <= ymax ; y++) {
+    for (y = ymin; y <= ymax; y++) {
 
-      if((mapshape == MAP_RECTANGLE && abs(centre - y) <= size*2  && abs(centre - x) <= size ) ||
-   ((mapshape == MAP_CIRCLE) && (centre-x)*(centre-x) + (centre-y)*(centre-y)/4 <= (size * size + 1))) {
+      if ((mapshape == MAP_RECTANGLE && abs(centre - y) <= size * 2 && abs(centre - x) <= size) ||
+        ((mapshape == MAP_CIRCLE) && (centre - x) * (centre - x) + (centre - y) * (centre - y) / 4 <= (size * size + 1))) {
         strcpy(mp, world_map_info[map[x][y]].disp);
         mp += strlen(world_map_info[map[x][y]].disp);
       } else {
- strcpy(mp++, " ");
+        strcpy(mp++, " ");
       }
     }
     strcpy(mp, "\tn\r\n");
-    mp+=4;
+    mp += 4;
   }
-  *mp='\0';
+  *mp = '\0';
   return strmap;
 }
 
@@ -448,41 +457,39 @@ static char *CompactStringMap(int centre, int size)
 }
 
 /* Display a nicely formatted map with a legend */
-static void perform_map( struct char_data *ch, char *argument, bool worldmap )
+static void perform_map(struct char_data* ch, char* argument, bool worldmap)
 {
   int size = DEFAULT_MAP_SIZE;
   int centre, x, y, min, max;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
   int count = 0;
-  int ew_size=0, ns_size=0;
+  int ew_size = 0, ns_size = 0;
   int mapshape = MAP_CIRCLE;
 
-  two_arguments( argument, arg1 , arg2 );
-  if(*arg1)
-  {
+  two_arguments(argument, arg1, arg2);
+  if (*arg1)
     size = atoi(arg1);
-  }
-  if (*arg2)
-  {
-    if (is_abbrev(arg2, "normal")) worldmap=FALSE;
-    else if (is_abbrev(arg2, "world")) worldmap=TRUE;
+
+  if (*arg2) {
+    if (is_abbrev(arg2, "normal")) worldmap = FALSE;
+    else if (is_abbrev(arg2, "world")) worldmap = TRUE;
     else {
       send_to_char(ch, "Usage: \tymap <distance> [ normal | world ]\tn");
       return;
     }
   }
 
-  if(size<0) {
+  if (size < 0) {
     size = -size;
     mapshape = MAP_RECTANGLE;
   }
-  size = URANGE(1,size,MAX_MAP_SIZE);
 
-  centre = MAX_MAP/2;
+  size = URANGE(1, size, MAX_MAP_SIZE);
+  centre = MAX_MAP / 2;
 
-  if(worldmap) {
-    min = centre - 2*size;
-    max = centre + 2*size;
+  if (worldmap) {
+    min = centre - 2 * size;
+    max = centre + 2 * size;
   } else {
     min = centre - size;
     max = centre + size;
@@ -490,37 +497,37 @@ static void perform_map( struct char_data *ch, char *argument, bool worldmap )
 
   /* Blank the map */
   for (x = 0; x < MAX_MAP; ++x)
-      for (y = 0; y < MAX_MAP; ++y)
-           map[x][y]= (!(y%2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
+    for (y = 0; y < MAX_MAP; ++y)
+      map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
 
   /* starts the mapping with the centre room */
-  MapArea(IN_ROOM(ch), ch, centre, centre, min, max, ns_size/2, ew_size/2, worldmap);
+  MapArea(IN_ROOM(ch), ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
 
   /* marks the center, where ch is */
-  map[centre][centre] = SECT_HERE; 
+  map[centre][centre] = SECT_HERE;
 
   /* Feel free to put your own MUD name or header in here */
   send_to_char(ch, " \tY-\tytbaMUD Map System\tY-\tn\r\n"
-                   "\tD  .-.__--.,--.__.-.\tn\r\n" );
+    "\tD  .-.__--.,--.__.-.\tn\r\n");
 
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s You\\\\", map_info[SECT_HERE].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s City\\\\", map_info[SECT_CITY].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Swim\\\\", map_info[SECT_WATER_SWIM].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Boat\\\\", map_info[SECT_WATER_NOSWIM].disp);
-  count += snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Flying\\\\", map_info[SECT_FLYING].disp);
-  snprintf(buf + count, MAX_STRING_LENGTH - count,  "\tn%s Underwater\\\\", map_info[SECT_UNDERWATER].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s You\\\\", map_info[SECT_HERE].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s City\\\\", map_info[SECT_CITY].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Swim\\\\", map_info[SECT_WATER_SWIM].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Boat\\\\", map_info[SECT_WATER_NOSWIM].disp);
+  count += snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Flying\\\\", map_info[SECT_FLYING].disp);
+  snprintf(buf + count, MAX_STRING_LENGTH - count, "\tn%s Underwater\\\\", map_info[SECT_UNDERWATER].disp);
 
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
   /* Start with an empty column */
-  strcpy(buf1, strfrmt("",0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE));
+  strcpy(buf1, strfrmt("", 0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE));
 
   /* Paste the legend */
   strcpy(buf2, strpaste(buf1, buf, "\tD | \tn"));

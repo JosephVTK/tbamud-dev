@@ -2279,7 +2279,8 @@ void free_help_table(void)
 
 void load_help(FILE * fl, char *name)
 {
-  char key[READ_SIZE + 1], next_key[READ_SIZE + 1], entry[32384];
+  int ENTRY_LENGTH = 32384;
+  char key[READ_SIZE + 1], next_key[READ_SIZE + 1], entry[ENTRY_LENGTH];
   size_t entrylen;
   char line[READ_SIZE + 1], hname[READ_SIZE + 1], *scan;
   struct help_index_element el;
@@ -2297,7 +2298,7 @@ void load_help(FILE * fl, char *name)
       entrylen += strlcpy(entry + entrylen, line, sizeof(entry) - entrylen);
 
       if (entrylen + 2 < sizeof(entry) - 1) {
-        strcpy(entry + entrylen, "\r\n"); /* strcpy: OK (size checked above) */
+        strlcpy(entry + entrylen, "\r\n", ENTRY_LENGTH - entrylen);
         entrylen += 2;
       }
       get_one_line(fl, line);
@@ -2307,7 +2308,7 @@ void load_help(FILE * fl, char *name)
       int keysize;
       const char *truncmsg = "\r\n*TRUNCATED*\r\n";
 
-      strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
+      strlcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg, ENTRY_LENGTH - entrylen);
 
       keysize = strlen(key) - 2;
       log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);

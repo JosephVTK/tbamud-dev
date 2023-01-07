@@ -676,7 +676,7 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
   int num_of_tokens = 0, num;
 
   /* First, parse the original string */
-  strcpy(buf2, orig);	/* strcpy: OK (orig:MAX_INPUT_LENGTH < buf2:MAX_RAW_INPUT_LENGTH) */
+  strlcpy(buf2, orig, MAX_RAW_INPUT_LENGTH);
   temp = strtok(buf2, " ");
   while (temp != NULL && num_of_tokens < NUM_TOKENS) {
     tokens[num_of_tokens++] = temp;
@@ -697,14 +697,14 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
     } else if (*temp == ALIAS_VAR_CHAR) {
       temp++;
       if ((num = *temp - '1') < num_of_tokens && num >= 0) {
-	strcpy(write_point, tokens[num]);	/* strcpy: OK */
-	write_point += strlen(tokens[num]);
+        strlcpy(write_point, tokens[num], MAX_RAW_INPUT_LENGTH - strlen(write_point));
+        write_point += strlen(tokens[num]);
       } else if (*temp == ALIAS_GLOB_CHAR) {
         skip_spaces(&orig);
-        strcpy(write_point, orig);		/* strcpy: OK */
-	write_point += strlen(orig);
+        strlcpy(write_point, orig, MAX_RAW_INPUT_LENGTH - strlen(write_point));
+        write_point += strlen(orig);
       } else if ((*(write_point++) = *temp) == '$')	/* redouble $ for act safety */
-	*(write_point++) = '$';
+        *(write_point++) = '$';
     } else
       *(write_point++) = *temp;
   }
