@@ -2397,13 +2397,12 @@ static void extract_value(struct script_data *sc, trig_data *trig, char *cmd)
 {
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
   char *buf3;
-  int TO_LENGTH = 128;
-  char to[TO_LENGTH];
+  char to[128];
   int num;
 
   buf3 = any_one_arg(cmd, buf);
   half_chop(buf3, buf2, buf);
-  strlcpy(to, buf2, TO_LENGTH);
+  strlcpy(to, buf2, sizeof(to));
 
   num = atoi(buf);
   if (num < 1) {

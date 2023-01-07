@@ -668,10 +668,10 @@ ACMD(do_alias)
  * commands. */
 #define NUM_TOKENS       9
 
-static void perform_complex_alias(struct txt_q* input_q, char* orig, struct alias_data* a)
+static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a)
 {
   struct txt_q temp_queue;
-  char* tokens[NUM_TOKENS], * temp, * write_point;
+  char *tokens[NUM_TOKENS], *temp, *write_point;
   char buf2[MAX_RAW_INPUT_LENGTH], buf[MAX_RAW_INPUT_LENGTH];	/* raw? */
   int num_of_tokens = 0, num;
 

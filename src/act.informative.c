@@ -743,7 +743,7 @@ ACMD(do_look)
     else if (is_abbrev(arg, "at"))
       look_at_target(ch, strcpy(tempsave, arg2)); /* strcpy: OK */
     else if (is_abbrev(arg, "around")) {
-      struct extra_descr_data* i;
+      struct extra_descr_data *i;
 
       for (i = world[IN_ROOM(ch)].ex_description; i; i = i->next) {
         if (*i->keyword != '.') {
@@ -1366,12 +1366,11 @@ ACMD(do_who)
 
 ACMD(do_users)
 {
-  int CLASSNAME_LENGTH = 20, IDLETIME_LENGTH = 10, LINE_LENGTH = 200, LINE2_LENGTH = 220, STATE_LENGTH = 30;
-  char line[LINE_LENGTH], line2[LINE2_LENGTH], idletime[IDLETIME_LENGTH], classname[CLASSNAME_LENGTH];
-  char state[STATE_LENGTH], timestr[9], mode;
+  char line[200], line2[220], idletime[10], classname[20];
+  char state[30], timestr[9], mode;
   char name_search[MAX_INPUT_LENGTH], host_search[MAX_INPUT_LENGTH];
-  struct char_data* tch;
-  struct descriptor_data* d;
+  struct char_data *tch;
+  struct descriptor_data *d;
   int low = 0, high = LVL_IMPL, num_can_see = 0;
   int showclass = 0, outlaws = 0, playing = 0, deadweight = 0;
   char buf[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
@@ -1467,20 +1466,20 @@ ACMD(do_users)
         snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->character),
           CLASS_ABBR(d->character));
     } else
-      strlcpy(classname, "   -   ", CLASSNAME_LENGTH);
+      strlcpy(classname, "   -   ", sizeof(classname));
 
     strftime(timestr, sizeof(timestr), "%H:%M:%S", localtime(&(d->login_time)));
 
     if (STATE(d) == CON_PLAYING && d->original)
-      strlcpy(state, "Switched", STATE_LENGTH);
+      strlcpy(state, "Switched", sizeof(state));
     else
-      strlcpy(state, connected_types[STATE(d)], STATE_LENGTH);
+      strlcpy(state, connected_types[STATE(d)], sizeof(state));
 
     if (d->character && STATE(d) == CON_PLAYING)
       snprintf(idletime, sizeof(idletime), "%5d", d->character->char_specials.timer *
         SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
-      strlcpy(idletime, "     ", IDLETIME_LENGTH);
+      strlcpy(idletime, "     ", sizeof(idletime));
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
       d->original && d->original->player.name ? d->original->player.name :
@@ -1491,11 +1490,11 @@ ACMD(do_users)
     if (*d->host)
       len = snprintf(line + strlen(line), sizeof(line) - len, "[%s]\r\n", d->host);
     else
-      strncat(line, "[Hostname unknown]\r\n", LINE_LENGTH);
+      strncat(line, "[Hostname unknown]\r\n", sizeof(line));
 
     if (STATE(d) != CON_PLAYING) {
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
-      strlcpy(line, line2, LINE_LENGTH);
+      strlcpy(line, line2, sizeof(line));
     }
     if (STATE(d) != CON_PLAYING || (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character))) {
       send_to_char(ch, "%s", line);
@@ -1831,17 +1830,16 @@ ACMD(do_diagnose)
 
 ACMD(do_toggle)
 {
-  int BUF2_LENGTH = 4;
-  char buf2[BUF2_LENGTH], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
-  const char* types[] = { "off", "brief", "normal", "on", "\n" };
+  const char *types[] = { "off", "brief", "normal", "on", "\n" };
 
   const struct {
-    char* command;
+    char *command;
     bitvector_t toggle; /* this needs changing once hashmaps are implemented */
     char min_level;
-    char* disable_msg;
-    char* enable_msg;
+    char *disable_msg;
+    char *enable_msg;
   } tog_messages[] = {
     {"summonable", PRF_SUMMONABLE, 0,
     "You are now safe from summoning by other players.\r\n",
@@ -1946,7 +1944,7 @@ ACMD(do_toggle)
 
   if (!*arg) {
     if (!GET_WIMP_LEV(ch))
-      strlcpy(buf2, "OFF", BUF2_LENGTH);
+      strlcpy(buf2, "OFF", sizeof(buf2));
     else
       snprintf(buf2, sizeof(buf2), "%-3.3d", GET_WIMP_LEV(ch));  /* sprintf: OK */
 

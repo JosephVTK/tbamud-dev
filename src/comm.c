@@ -1830,12 +1830,12 @@ static ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space
  * above, 'tmp' lost the '+8' since it doesn't need it and the code has been
  * changed to reserve space by accepting one less character. (Do you really
  * need 256 characters on a line?) -gg 1/21/2000 */
-static int process_input(struct descriptor_data* t)
+static int process_input(struct descriptor_data *t)
 {
   int buf_length, failed_subst;
   ssize_t bytes_read;
   size_t space_left;
-  char* ptr, * read_point, * write_point, * nl_pos = NULL;
+  char *ptr, *read_point, *write_point, *nl_pos = NULL;
   char tmp[MAX_INPUT_LENGTH];
   static char read_buf[MAX_PROTOCOL_BUFFER] = { '\0' }; /* KaVir's plugin */
 
@@ -1937,7 +1937,7 @@ static int process_input(struct descriptor_data* t)
     if (*tmp == '!' && !(*(tmp + 1)))	/* Redo last command. */
       strcpy(tmp, t->last_input);	/* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
     else if (*tmp == '!' && *(tmp + 1)) {
-      char* commandln = (tmp + 1);
+      char *commandln = (tmp + 1);
       int starting_pos = t->history_pos,
         cnt = (t->history_pos == 0 ? HISTORY_SIZE - 1 : t->history_pos - 1);
 

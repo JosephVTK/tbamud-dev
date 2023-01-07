@@ -1286,8 +1286,7 @@ struct obj_data *create_money(int amount)
 {
   struct obj_data *obj;
   struct extra_descr_data *new_descr;
-  int BUF_LENGTH = 200;
-  char buf[BUF_LENGTH];
+  char buf[200];
   int y;
 
   if (amount <= 0) {
@@ -1320,7 +1319,7 @@ struct obj_data *create_money(int amount)
       snprintf(buf, sizeof(buf), "You guess there are, maybe, %d coins.",
 	      1000 * ((amount / 1000) + rand_number(0, (amount / 1000))));
     else
-      strlcpy(buf, "There are a LOT of coins.", BUF_LENGTH);
+      strlcpy(buf, "There are a LOT of coins.", sizeof(buf));
     new_descr->description = strdup(buf);
   }
 

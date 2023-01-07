@@ -119,11 +119,10 @@ static void write_ban_list(void)
 #define BAN_LIST_FORMAT "%-25.25s  %-8.8s  %-15.15s  %-16.16s\r\n"
 ACMD(do_ban)
 {
-  int TIMESTR_LENGTH = 16;
-  char timestr[TIMESTR_LENGTH];
-  char flag[MAX_INPUT_LENGTH], site[MAX_INPUT_LENGTH], * nextchar;
+  char timestr[16];
+  char flag[MAX_INPUT_LENGTH], site[MAX_INPUT_LENGTH], *nextchar;
   int i;
-  struct ban_list_element* ban_node;
+  struct ban_list_element *ban_node;
 
   if (!*argument) {
     if (!ban_list) {
@@ -145,7 +144,7 @@ ACMD(do_ban)
       if (ban_node->date) {
         strftime(timestr, sizeof(timestr), "%a %b %d %Y", localtime(&(ban_node->date)));
       } else
-        strlcpy(timestr, "Unknown", TIMESTR_LENGTH);
+        strlcpy(timestr, "Unknown", sizeof(timestr));
 
       send_to_char(ch, BAN_LIST_FORMAT, ban_node->site, ban_types[ban_node->type], timestr, ban_node->name);
     }

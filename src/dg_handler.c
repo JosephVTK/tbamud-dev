@@ -224,41 +224,41 @@ void free_proto_script(void *thing, int type)
   }
 }
 
-void copy_proto_script( void* source , void* dest , int type )
+void copy_proto_script(void *source, void *dest, int type)
 {
-  struct trig_proto_list* tp_src = NULL , * tp_dst = NULL;
+  struct trig_proto_list *tp_src = NULL, *tp_dst = NULL;
 
-  switch ( type ) {
-    case MOB_TRIGGER:
-      tp_src = ( ( char_data* ) source )->proto_script;
-      break;
-    case OBJ_TRIGGER:
-      tp_src = ( ( obj_data* ) source )->proto_script;
-      break;
-    case WLD_TRIGGER:
-      tp_src = ( ( room_data* ) source )->proto_script;
-      break;
+  switch (type) {
+  case MOB_TRIGGER:
+    tp_src = ((char_data *)source)->proto_script;
+    break;
+  case OBJ_TRIGGER:
+    tp_src = ((obj_data *)source)->proto_script;
+    break;
+  case WLD_TRIGGER:
+    tp_src = ((room_data *)source)->proto_script;
+    break;
   }
 
-  if ( tp_src ) {
-    CREATE( tp_dst , struct trig_proto_list , 1 );
-    switch ( type ) {
-      case MOB_TRIGGER:
-        ( ( char_data* ) dest )->proto_script = tp_dst;
-        break;
-      case OBJ_TRIGGER:
-        ( ( obj_data* ) dest )->proto_script = tp_dst;
-        break;
-      case WLD_TRIGGER:
-        ( ( room_data* ) dest )->proto_script = tp_dst;
-        break;
+  if (tp_src) {
+    CREATE(tp_dst, struct trig_proto_list, 1);
+    switch (type) {
+    case MOB_TRIGGER:
+      ((char_data *)dest)->proto_script = tp_dst;
+      break;
+    case OBJ_TRIGGER:
+      ((obj_data *)dest)->proto_script = tp_dst;
+      break;
+    case WLD_TRIGGER:
+      ((room_data *)dest)->proto_script = tp_dst;
+      break;
     }
 
-    while ( tp_src ) {
+    while (tp_src) {
       tp_dst->vnum = tp_src->vnum;
       tp_src = tp_src->next;
-      if ( tp_src )
-        CREATE( tp_dst->next , struct trig_proto_list , 1 );
+      if (tp_src)
+        CREATE(tp_dst->next, struct trig_proto_list, 1);
       tp_dst = tp_dst->next;
     }
   }
@@ -286,6 +286,6 @@ void update_wait_events(struct room_data *to, struct room_data *from)
     if (!GET_TRIG_WAIT(trig))
       continue;
 
-    ((struct wait_event_data*)GET_TRIG_WAIT(trig)->event_obj)->go = to;
+    ((struct wait_event_data *)GET_TRIG_WAIT(trig)->event_obj)->go = to;
   }
 }

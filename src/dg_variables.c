@@ -257,25 +257,25 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   char *name;
   int num, count, i, j, doors;
 
-  char *log_cmd[] = { "mlog ",        "olog ",        "wlog " };
-  char *send_cmd[] = { "msend ",       "osend ",       "wsend " };
-  char *echo_cmd[] = { "mecho ",       "oecho ",       "wecho " };
-  char *echoaround_cmd[] = { "mechoaround ", "oechoaround ", "wechoaround " };
-  char *door[] = { "mdoor ",       "odoor ",       "wdoor " };
-  char *force[] = { "mforce ",      "oforce ",      "wforce " };
-  char *load[] = { "mload ",       "oload ",       "wload " };
-  char *purge[] = { "mpurge ",      "opurge ",      "wpurge " };
-  char *teleport[] = { "mteleport ",   "oteleport ",   "wteleport " };
+  char *log_cmd[]        = {"mlog ",        "olog ",        "wlog "       };
+  char *send_cmd[]       = {"msend ",       "osend ",       "wsend "      };
+  char *echo_cmd[]       = {"mecho ",       "oecho ",       "wecho "      };
+  char *echoaround_cmd[] = {"mechoaround ", "oechoaround ", "wechoaround "};
+  char *door[]           = {"mdoor ",       "odoor ",       "wdoor "      };
+  char *force[]          = {"mforce ",      "oforce ",      "wforce "     };
+  char *load[]           = {"mload ",       "oload ",       "wload "      };
+  char *purge[]          = {"mpurge ",      "opurge ",      "wpurge "     };
+  char *teleport[]       = {"mteleport ",   "oteleport ",   "wteleport "  };
   /* the x kills a 'shadow' warning in gcc. */
-  char *xdamage[] = { "mdamage ",     "odamage ",     "wdamage " };
-  char *zoneecho[] = { "mzoneecho ",   "ozoneecho ",   "wzoneecho " };
-  char *asound[] = { "masound ",     "oasound ",     "wasound " };
-  char *at[] = { "mat ",         "oat ",         "wat " };
+  char *xdamage[]        = {"mdamage ",     "odamage ",     "wdamage "    };
+  char *zoneecho[]       = {"mzoneecho ",   "ozoneecho ",   "wzoneecho "  };
+  char *asound[]         = {"masound ",     "oasound ",     "wasound "    };
+  char *at[]             = {"mat ",         "oat ",         "wat "        };
   /* there is no such thing as wtransform, thus the wecho below  */
-  char *transform[] = { "mtransform ",  "otransform ",  "wecho " };
-  char *recho[] = { "mrecho ",      "orecho ",      "wrecho " };
+  char *transform[]      = {"mtransform ",  "otransform ",  "wecho "      };
+  char *recho[]          = {"mrecho ",      "orecho ",      "wrecho "     };
   /* there is no such thing as mmove, thus the mecho below  */
-  char *omove[] = { "mecho ",      "omove ",      "wmove " };
+  char *omove[]          = {"mecho ",      "omove ",      "wmove "     };
 
   *str = '\0';
 
