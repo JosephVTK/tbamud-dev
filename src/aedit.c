@@ -18,6 +18,7 @@
 #include "constants.h"
 #include "genolc.h"
 #include "act.h"
+#include "jsIOn.h"
 
 
 /* local utility functions */
@@ -200,7 +201,51 @@ static void aedit_save_internally(struct descriptor_data *d) {
    aedit_save_to_disk(d); /* autosave by Rumble */
 }
 
+#define PRINT_MSG(msg) (msg == NULL ? "#" : msg)
+void save_json_action_messages_to_disk(void) {
+  JSONdata *new_array = NULL;
+  JSONdata *new_object = NULL;
+  int i;
+
+  new_array = jsonCreateArray(NULL);
+
+  for (i = 0; i <= top_of_socialt; i++)  {
+    new_object = jsonCreateObject(NULL);
+    jsonAddObject(new_array, new_object);
+
+    jsonAddObject(new_object, jsonCreateString("command", PRINT_MSG(soc_mess_list[i].command)));
+    jsonAddObject(new_object, jsonCreateString("sort_as", PRINT_MSG(soc_mess_list[i].command)));
+    jsonAddObject(new_object, jsonCreateInt("hide", soc_mess_list[i].hide));
+    jsonAddObject(new_object, jsonCreateInt("min_char_position", soc_mess_list[i].min_char_position));
+    jsonAddObject(new_object, jsonCreateInt("min_victim_position", soc_mess_list[i].min_victim_position));
+    jsonAddObject(new_object, jsonCreateInt("min_level_char", soc_mess_list[i].min_level_char));
+              
+    jsonAddObject(new_object, jsonCreateString("char_no_arg", PRINT_MSG(soc_mess_list[i].char_no_arg)));
+    jsonAddObject(new_object, jsonCreateString("others_no_arg", PRINT_MSG(soc_mess_list[i].others_no_arg)));
+    jsonAddObject(new_object, jsonCreateString("char_found", PRINT_MSG(soc_mess_list[i].char_found)));
+    jsonAddObject(new_object, jsonCreateString("others_found", PRINT_MSG(soc_mess_list[i].others_found)));
+
+    jsonAddObject(new_object, jsonCreateString("vict_found", PRINT_MSG(soc_mess_list[i].vict_found)));
+    jsonAddObject(new_object, jsonCreateString("not_found", PRINT_MSG(soc_mess_list[i].not_found)));
+    jsonAddObject(new_object, jsonCreateString("char_auto", PRINT_MSG(soc_mess_list[i].char_auto)));
+    jsonAddObject(new_object, jsonCreateString("others_auto", PRINT_MSG(soc_mess_list[i].others_auto)));
+
+    jsonAddObject(new_object, jsonCreateString("char_body_found", PRINT_MSG(soc_mess_list[i].char_body_found)));
+    jsonAddObject(new_object, jsonCreateString("others_body_found", PRINT_MSG(soc_mess_list[i].others_body_found)));
+    jsonAddObject(new_object, jsonCreateString("vict_body_found", PRINT_MSG(soc_mess_list[i].vict_body_found)));
+
+    jsonAddObject(new_object, jsonCreateString("char_obj_found", PRINT_MSG(soc_mess_list[i].char_obj_found)));
+    jsonAddObject(new_object, jsonCreateString("others_obj_found", PRINT_MSG(soc_mess_list[i].others_obj_found)));
+
+   }
+
+  json_write_to_disk(SOCMESS_FILE".json", new_array);
+  json_free_object(new_array);
+}
+
 static void aedit_save_to_disk(struct descriptor_data *d) {
+  save_json_action_messages_to_disk();
+  return;
    FILE *fp;
    int i;
    char buf[MAX_STRING_LENGTH];

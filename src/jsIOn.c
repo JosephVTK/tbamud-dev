@@ -93,6 +93,8 @@ static void _set_new_json(JSONdata *j, const char *key) {
     j->j_string = NULL;
     j->j_double = 0.00;
     j->j_integer = 0;
+
+    j->_num_children = 0;
 }
 
 /*
@@ -237,6 +239,7 @@ JSONdata *jsonAddObject(JSONdata *container, JSONdata *item) {
         container->last = item;
     }
 
+    container->_num_children++;
     return item;
 }
 

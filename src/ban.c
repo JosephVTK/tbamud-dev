@@ -17,6 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "ban.h"
+#include "jsIOn.h"
 
 /* global variables locally defined, used externally */
 struct ban_list_element *ban_list = NULL;
@@ -285,7 +286,7 @@ void free_invalid_list(void)
   num_invalid = 0;
 }
 
-void read_invalid_list(void)
+void read_default_invalid_list(void)
 {
   FILE *fp;
   char temp[256];
@@ -305,4 +306,48 @@ void read_invalid_list(void)
   }
 
   fclose(fp);
+}
+
+#define STRING_FROM_JSON(object) (object != NULL && object->j_string != NULL ? strdup(object->j_string) : NULL)
+void read_json_invalid_list(void)
+{
+  JSONdata *base_object;
+  JSONdata *name_object;
+
+  base_object = json_read_from_disk(XNAME_FILE".json");
+
+  if (base_object == NULL) {
+    /*
+      ON THE FLY CONVERSION:
+    */
+    read_default_invalid_list();
+
+    /*
+    Save XNAMES in JSON
+    */
+
+    base_object = jsonCreateArray(NULL);
+    for (num_invalid = 0; num_invalid < MAX_INVALID_NAMES && invalid_list[num_invalid] != NULL; num_invalid++)
+        jsonAddObject(base_object, jsonCreateString(NULL, invalid_list[num_invalid]));
+
+    json_write_to_disk(XNAME_FILE".json", base_object);
+    json_free_object(base_object);
+
+    log("CONVERSION: Created new json xnames file.");
+    return;
+  }
+
+  log("Loading JSON xnames file.");
+  for (name_object = base_object->child, num_invalid = 0; name_object != NULL && num_invalid < MAX_INVALID_NAMES; name_object = name_object->next, num_invalid++)
+    invalid_list[num_invalid] = STRING_FROM_JSON(name_object);
+
+  json_free_object(base_object);
+
+}
+
+void read_invalid_list(void) {
+  if (CONFIG_JSON_FILES == TRUE)
+    read_json_invalid_list();
+  else
+    read_default_invalid_list();
 }

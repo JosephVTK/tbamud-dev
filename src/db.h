@@ -321,6 +321,9 @@ bitvector_t asciiflag_conv(char *flag);
 void renum_world(void);
 void load_config( void );
 
+/* functions from aedit.c */
+void save_json_action_messages_to_disk(void);
+
 /* Various Files */
 extern char *credits;
 extern char *news;

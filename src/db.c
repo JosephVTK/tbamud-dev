@@ -39,6 +39,7 @@
 #include "msgedit.h"
 #include "screen.h"
 #include <sys/stat.h>
+#include "jsIOn.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -150,6 +151,7 @@ static void load_default_config( void );
 static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int hsort(const void *a, const void *b);
+static void boot_default_social_messages(void);
 
 /* routines for booting the system */
 char *fread_action(FILE *fl, int nr)
@@ -186,7 +188,67 @@ char *fread_action(FILE *fl, int nr)
   return (strdup(buf));
 }
 
-static void boot_social_messages(void)
+#define STRDUP_OR_NULL(object) (object != NULL ? strdup(object) : NULL)
+#define STRING_FROM_JSON(object) (object != NULL && object->j_string != NULL ? strdup(object->j_string) : NULL)
+static void boot_json_social_messages(void) {
+  JSONdata *base_object;
+  JSONdata *social_object;
+
+  int i;
+
+  log("Loading JSON social file.");
+  base_object = json_read_from_disk(SOCMESS_FILE".json");
+
+  if (base_object == NULL) {
+    /*
+      ON THE FLY CONVERSION:  
+        
+
+        We booted the server with the intent of using the json messages file but it didn't exist.
+        Let's load the default messages (AND LEAVE IT INTACT AS A BACKUP), and then write it to the
+        disk as json for the next load time. -JA 2022
+    */
+    boot_default_social_messages();
+    save_json_action_messages_to_disk();
+    log("CONVERSION: Created new json socials file.");
+    return;
+  }
+
+  /* Initialize our initial structs (repurposed from original)*/
+  CREATE(soc_mess_list, struct social_messg, JSON_SIZE(base_object) + 1);
+
+  for (social_object = base_object->child, i = 0; social_object != NULL; social_object = social_object->next, i++) {
+      soc_mess_list[i].command = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "command"));
+      soc_mess_list[i].sort_as = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "sort_as"));
+
+      soc_mess_list[i].hide = jsonGetValueFromObject(social_object, "hide")->j_integer;
+      soc_mess_list[i].min_char_position = jsonGetValueFromObject(social_object, "min_char_position")->j_integer;
+      soc_mess_list[i].min_victim_position = jsonGetValueFromObject(social_object, "min_victim_position")->j_integer;
+      soc_mess_list[i].min_level_char = jsonGetValueFromObject(social_object, "min_level_char")->j_integer;
+
+      soc_mess_list[i].char_no_arg = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "char_no_arg"));
+      soc_mess_list[i].others_no_arg = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "others_no_arg"));
+      soc_mess_list[i].char_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "char_found"));
+      soc_mess_list[i].others_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "others_found"));
+
+      soc_mess_list[i].vict_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "vict_found"));
+      soc_mess_list[i].not_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "not_found"));
+      soc_mess_list[i].char_auto = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "char_auto"));
+      soc_mess_list[i].others_auto = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "others_auto"));
+
+      soc_mess_list[i].char_body_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "char_body_found"));
+      soc_mess_list[i].others_body_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "others_body_found"));
+      soc_mess_list[i].vict_body_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "vict_body_found"));
+
+      soc_mess_list[i].char_obj_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "char_obj_found"));
+      soc_mess_list[i].others_obj_found = STRING_FROM_JSON(jsonGetValueFromObject(social_object, "others_obj_found"));
+
+      top_of_socialt = i;
+  }
+  json_free_object(base_object);
+}
+
+static void boot_default_social_messages(void)
 {
   FILE *fl;
   int line_number, nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1;
@@ -325,6 +387,14 @@ static void boot_social_messages(void)
   assert(curr_soc <= top_of_socialt);
   top_of_socialt = curr_soc;
 }
+
+static void boot_social_messages(void) {
+  if (CONFIG_JSON_FILES == TRUE)
+    boot_json_social_messages();
+  else
+    boot_default_social_messages();
+}
+
 
 /* this is necessary for the autowiz system */
 void reboot_wizlists(void)

@@ -50,11 +50,12 @@ typedef struct json_data {
     int j_integer;
     double j_double;
 
-
+    int _num_children;
 } JSONdata;
 
 #define IS_JSON(json_object, jType) (json_object->json_value_type == jType) 
 #define JSON_CONTAINER (jsonOBJECT || jsonARRAY)
+#define JSON_SIZE(json_object) (json_object->_num_children)
 
 /* Creators */
 JSONdata *jsonCreateArray(const char *key);
