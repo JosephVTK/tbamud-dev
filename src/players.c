@@ -22,6 +22,7 @@
 #include "config.h" /* for pclean_criteria[] */
 #include "dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest.h"
+#include "jsIOn.h"
 
 #define LOAD_HIT	0
 #define LOAD_MANA	1
@@ -489,7 +490,7 @@ int load_char(const char *name, struct char_data *ch)
 
 /* Write the vital data of a player to the player file. */
 /* This is the ASCII Player Files save routine. */
-void save_char(struct char_data * ch)
+void save_char(struct char_data *ch)
 {
   FILE *fl;
   char filename[40], buf[MAX_STRING_LENGTH], bits[127], bits2[127], bits3[127], bits4[127];
@@ -497,6 +498,8 @@ void save_char(struct char_data * ch)
   struct affected_type *aff, tmp_aff[MAX_AFFECT];
   struct obj_data *char_eq[NUM_WEARS];
   trig_data *t;
+
+  JSONdata *base_object, *array, *tmp_object;
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
     return;
@@ -533,15 +536,14 @@ void save_char(struct char_data * ch)
 #ifndef NO_EXTRANEOUS_TRIGGERS
       remove_otrigger(char_eq[i], ch);
 #endif
-    }
-    else
+    } else
       char_eq[i] = NULL;
   }
 
   for (aff = ch->affected, i = 0; i < MAX_AFFECT; i++) {
     if (aff) {
       tmp_aff[i] = *aff;
-      for (j=0; j<AF_ARRAY_MAX; j++)
+      for (j = 0; j < AF_ARRAY_MAX; j++)
         tmp_aff[i].bitvector[j] = aff->bitvector[j];
       tmp_aff[i].next = 0;
       aff = aff->next;
@@ -563,6 +565,15 @@ void save_char(struct char_data * ch)
   ch->aff_abils = ch->real_abils;
   /* end char_to_store code */
 
+  base_object = jsonCreateObject(NULL);
+
+
+  jsonAddObject(base_object, jsonCreateString("name", GET_NAME(ch)));
+  jsonAddObject(base_object, jsonCreateString("password", GET_PASSWD(ch)));
+  jsonAddObject(base_object, jsonCreateString("title", GET_TITLE(ch)));
+  if (ch->player.description && *ch->player.description)
+    jsonAddObject(base_object, jsonCreateString("description", ch->player.description));
+
   if (GET_NAME(ch))				fprintf(fl, "Name: %s\n", GET_NAME(ch));
   if (GET_PASSWD(ch))				fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
   if (GET_TITLE(ch))				fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
@@ -571,120 +582,259 @@ void save_char(struct char_data * ch)
     strip_cr(buf);
     fprintf(fl, "Desc:\n%s~\n", buf);
   }
+
+  if (POOFIN(ch))                   jsonAddObject(base_object, jsonCreateString("poofin", POOFIN(ch)));
+  if (POOFOUT(ch))                  jsonAddObject(base_object, jsonCreateString("poofout", POOFOUT(ch)));
+  if (GET_SEX(ch) != PFDEF_SEX)     jsonAddObject(base_object, jsonCreateInt("sex", GET_SEX(ch)));
+  if (GET_CLASS(ch) != PFDEF_CLASS) jsonAddObject(base_object, jsonCreateInt("class", GET_CLASS(ch)));
+  if (GET_LEVEL(ch) != PFDEF_LEVEL) jsonAddObject(base_object, jsonCreateInt("level", GET_LEVEL(ch)));
+
   if (POOFIN(ch))				fprintf(fl, "PfIn: %s\n", POOFIN(ch));
   if (POOFOUT(ch))				fprintf(fl, "PfOt: %s\n", POOFOUT(ch));
-  if (GET_SEX(ch)	     != PFDEF_SEX)	fprintf(fl, "Sex : %d\n", GET_SEX(ch));
-  if (GET_CLASS(ch)	   != PFDEF_CLASS)	fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
-  if (GET_LEVEL(ch)	   != PFDEF_LEVEL)	fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
+  if (GET_SEX(ch) != PFDEF_SEX)	fprintf(fl, "Sex : %d\n", GET_SEX(ch));
+  if (GET_CLASS(ch) != PFDEF_CLASS)	fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
+  if (GET_LEVEL(ch) != PFDEF_LEVEL)	fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
+
+  jsonAddObject(base_object, jsonCreateInt("id", GET_IDNUM(ch)));
+  jsonAddObject(base_object, jsonCreateInt("birthday", ch->player.time.birth)); // Should be long
+  jsonAddObject(base_object, jsonCreateInt("timePlayed", ch->player.time.played));
+  jsonAddObject(base_object, jsonCreateInt("lastLogin", ch->player.time.logon)); // Should be long
 
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
   fprintf(fl, "Brth: %ld\n", (long)ch->player.time.birth);
-  fprintf(fl, "Plyd: %d\n",  ch->player.time.played);
+  fprintf(fl, "Plyd: %d\n", ch->player.time.played);
   fprintf(fl, "Last: %ld\n", (long)ch->player.time.logon);
 
-  if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
+  if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD) {
     fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
-  if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
+    jsonAddObject(base_object, jsonCreateInt("lastMOTD", (int)GET_LAST_MOTD(ch)));
+  }
+  if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS) {
     fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+    jsonAddObject(base_object, jsonCreateInt("lastNews", (int)GET_LAST_NEWS(ch)));
+  }
+
+  if (GET_HOST(ch)) jsonAddObject(base_object, jsonCreateString("host", GET_HOST(ch)));
+  if (GET_HEIGHT(ch) != PFDEF_HEIGHT) jsonAddObject(base_object, jsonCreateInt("height", GET_HEIGHT(ch)));
+  if (GET_WEIGHT(ch) != PFDEF_WEIGHT) jsonAddObject(base_object, jsonCreateInt("weight", GET_WEIGHT(ch)));
+  if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT) jsonAddObject(base_object, jsonCreateInt("alignment", GET_ALIGNMENT(ch)));
 
   if (GET_HOST(ch))				fprintf(fl, "Host: %s\n", GET_HOST(ch));
-  if (GET_HEIGHT(ch)	   != PFDEF_HEIGHT)	fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
-  if (GET_WEIGHT(ch)	   != PFDEF_WEIGHT)	fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
-  if (GET_ALIGNMENT(ch)  != PFDEF_ALIGNMENT)	fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
+  if (GET_HEIGHT(ch) != PFDEF_HEIGHT)	fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
+  if (GET_WEIGHT(ch) != PFDEF_WEIGHT)	fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
+  if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT)	fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
 
+  /*************************************************/
 
-  sprintascii(bits,  PLR_FLAGS(ch)[0]);
+  sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
   sprintascii(bits3, PLR_FLAGS(ch)[2]);
   sprintascii(bits4, PLR_FLAGS(ch)[3]);
+
+  array = jsonCreateArray("playerFlags");
+  jsonAddObject(array, jsonCreateString(NULL, bits));
+  jsonAddObject(array, jsonCreateString(NULL, bits2));
+  jsonAddObject(array, jsonCreateString(NULL, bits3));
+  jsonAddObject(array, jsonCreateString(NULL, bits4));
+  jsonAddObject(base_object, array);
+
   fprintf(fl, "Act : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
-  sprintascii(bits,  AFF_FLAGS(ch)[0]);
+  /*************************************************/
+
+  sprintascii(bits, AFF_FLAGS(ch)[0]);
   sprintascii(bits2, AFF_FLAGS(ch)[1]);
   sprintascii(bits3, AFF_FLAGS(ch)[2]);
   sprintascii(bits4, AFF_FLAGS(ch)[3]);
+
+  array = jsonCreateArray("affectFlags");
+  jsonAddObject(array, jsonCreateString(NULL, bits));
+  jsonAddObject(array, jsonCreateString(NULL, bits2));
+  jsonAddObject(array, jsonCreateString(NULL, bits3));
+  jsonAddObject(array, jsonCreateString(NULL, bits4));
+  jsonAddObject(base_object, array);
+
   fprintf(fl, "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
-  sprintascii(bits,  PRF_FLAGS(ch)[0]);
+  /*************************************************/
+
+  sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
   sprintascii(bits3, PRF_FLAGS(ch)[2]);
   sprintascii(bits4, PRF_FLAGS(ch)[3]);
+
+  array = jsonCreateArray("prefFlags");
+  jsonAddObject(array, jsonCreateString(NULL, bits));
+  jsonAddObject(array, jsonCreateString(NULL, bits2));
+  jsonAddObject(array, jsonCreateString(NULL, bits3));
+  jsonAddObject(array, jsonCreateString(NULL, bits4));
+  jsonAddObject(base_object, array);
+
   fprintf(fl, "Pref: %s %s %s %s\n", bits, bits2, bits3, bits4);
 
- if (GET_SAVE(ch, 0)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr1: %d\n", GET_SAVE(ch, 0));
-  if (GET_SAVE(ch, 1)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr2: %d\n", GET_SAVE(ch, 1));
-  if (GET_SAVE(ch, 2)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr3: %d\n", GET_SAVE(ch, 2));
-  if (GET_SAVE(ch, 3)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
-  if (GET_SAVE(ch, 4)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
+  /*************************************************/
 
-  if (GET_WIMP_LEV(ch)	   != PFDEF_WIMPLEV)	fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
-  if (GET_FREEZE_LEV(ch)   != PFDEF_FREEZELEV)	fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
-  if (GET_INVIS_LEV(ch)	   != PFDEF_INVISLEV)	fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
-  if (GET_LOADROOM(ch)	   != PFDEF_LOADROOM)	fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+  jsonAddObject(base_object, jsonCreateInt("savingThrow0", GET_SAVE(ch, 0)));
+  jsonAddObject(base_object, jsonCreateInt("savingThrow1", GET_SAVE(ch, 1)));
+  jsonAddObject(base_object, jsonCreateInt("savingThrow2", GET_SAVE(ch, 2)));
+  jsonAddObject(base_object, jsonCreateInt("savingThrow3", GET_SAVE(ch, 3)));
+  jsonAddObject(base_object, jsonCreateInt("savingThrow4", GET_SAVE(ch, 4)));
 
-  if (GET_BAD_PWS(ch)	   != PFDEF_BADPWS)	fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
-  if (GET_PRACTICES(ch)	   != PFDEF_PRACTICES)	fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
+  if (GET_SAVE(ch, 0) != PFDEF_SAVETHROW)	fprintf(fl, "Thr1: %d\n", GET_SAVE(ch, 0));
+  if (GET_SAVE(ch, 1) != PFDEF_SAVETHROW)	fprintf(fl, "Thr2: %d\n", GET_SAVE(ch, 1));
+  if (GET_SAVE(ch, 2) != PFDEF_SAVETHROW)	fprintf(fl, "Thr3: %d\n", GET_SAVE(ch, 2));
+  if (GET_SAVE(ch, 3) != PFDEF_SAVETHROW)	fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
+  if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW)	fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
 
-  if (GET_COND(ch, HUNGER)   != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
+  jsonAddObject(base_object, jsonCreateInt("wimpLevel", GET_WIMP_LEV(ch)));
+  jsonAddObject(base_object, jsonCreateInt("freezeLevel", GET_FREEZE_LEV(ch)));
+  jsonAddObject(base_object, jsonCreateInt("invisLevel", GET_INVIS_LEV(ch)));
+  jsonAddObject(base_object, jsonCreateInt("loadRoom", GET_LOADROOM(ch)));
+
+  if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV)	fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
+  if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV)	fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
+  if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV)	fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
+  if (GET_LOADROOM(ch) != PFDEF_LOADROOM)	fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+
+  jsonAddObject(base_object, jsonCreateInt("badPasswords", GET_BAD_PWS(ch)));
+  jsonAddObject(base_object, jsonCreateInt("practices", GET_PRACTICES(ch)));
+
+  if (GET_BAD_PWS(ch) != PFDEF_BADPWS)	fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
+  if (GET_PRACTICES(ch) != PFDEF_PRACTICES)	fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
+
+  jsonAddObject(base_object, jsonCreateInt("hunger", GET_COND(ch, HUNGER)));
+  jsonAddObject(base_object, jsonCreateInt("thirst", GET_COND(ch, THIRST)));
+  jsonAddObject(base_object, jsonCreateInt("drunk", GET_COND(ch, DRUNK)));
+
+  if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
   if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Thir: %d\n", GET_COND(ch, THIRST));
-  if (GET_COND(ch, DRUNK)  != PFDEF_DRUNK  && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
+  if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
 
-  if (GET_HIT(ch)	   != PFDEF_HIT  || GET_MAX_HIT(ch)  != PFDEF_MAXHIT)  fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch),  GET_MAX_HIT(ch));
-  if (GET_MANA(ch)	   != PFDEF_MANA || GET_MAX_MANA(ch) != PFDEF_MAXMANA) fprintf(fl, "Mana: %d/%d\n", GET_MANA(ch), GET_MAX_MANA(ch));
-  if (GET_MOVE(ch)	   != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE) fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
+  jsonAddObject(base_object, jsonCreateInt("hit", GET_HIT(ch)));
+  jsonAddObject(base_object, jsonCreateInt("maxHit", GET_MAX_HIT(ch)));
+  jsonAddObject(base_object, jsonCreateInt("mana", GET_MANA(ch)));
+  jsonAddObject(base_object, jsonCreateInt("maxMana", GET_MAX_MANA(ch)));
+  jsonAddObject(base_object, jsonCreateInt("move", GET_MOVE(ch)));
+  jsonAddObject(base_object, jsonCreateInt("maxMove", GET_MAX_MOVE(ch)));
 
-  if (GET_STR(ch)	   != PFDEF_STR  || GET_ADD(ch)      != PFDEF_STRADD)  fprintf(fl, "Str : %d/%d\n", GET_STR(ch),  GET_ADD(ch));
+  if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT)  fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
+  if (GET_MANA(ch) != PFDEF_MANA || GET_MAX_MANA(ch) != PFDEF_MAXMANA) fprintf(fl, "Mana: %d/%d\n", GET_MANA(ch), GET_MAX_MANA(ch));
+  if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE) fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
 
+  jsonAddObject(base_object, jsonCreateInt("str", GET_STR(ch)));
+  jsonAddObject(base_object, jsonCreateInt("strAdd", GET_ADD(ch)));
+  jsonAddObject(base_object, jsonCreateInt("int", GET_INT(ch)));
+  jsonAddObject(base_object, jsonCreateInt("wis", GET_WIS(ch)));
+  jsonAddObject(base_object, jsonCreateInt("dex", GET_DEX(ch)));
+  jsonAddObject(base_object, jsonCreateInt("con", GET_CON(ch)));
+  jsonAddObject(base_object, jsonCreateInt("cha", GET_CHA(ch)));
 
-  if (GET_INT(ch)	   != PFDEF_INT)	fprintf(fl, "Int : %d\n", GET_INT(ch));
-  if (GET_WIS(ch)	   != PFDEF_WIS)	fprintf(fl, "Wis : %d\n", GET_WIS(ch));
-  if (GET_DEX(ch)	   != PFDEF_DEX)	fprintf(fl, "Dex : %d\n", GET_DEX(ch));
-  if (GET_CON(ch)	   != PFDEF_CON)	fprintf(fl, "Con : %d\n", GET_CON(ch));
-  if (GET_CHA(ch)	   != PFDEF_CHA)	fprintf(fl, "Cha : %d\n", GET_CHA(ch));
+  if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)  fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
+  if (GET_INT(ch) != PFDEF_INT)	fprintf(fl, "Int : %d\n", GET_INT(ch));
+  if (GET_WIS(ch) != PFDEF_WIS)	fprintf(fl, "Wis : %d\n", GET_WIS(ch));
+  if (GET_DEX(ch) != PFDEF_DEX)	fprintf(fl, "Dex : %d\n", GET_DEX(ch));
+  if (GET_CON(ch) != PFDEF_CON)	fprintf(fl, "Con : %d\n", GET_CON(ch));
+  if (GET_CHA(ch) != PFDEF_CHA)	fprintf(fl, "Cha : %d\n", GET_CHA(ch));
 
-  if (GET_AC(ch)	   != PFDEF_AC)		fprintf(fl, "Ac  : %d\n", GET_AC(ch));
-  if (GET_GOLD(ch)	   != PFDEF_GOLD)	fprintf(fl, "Gold: %d\n", GET_GOLD(ch));
-  if (GET_BANK_GOLD(ch)	   != PFDEF_BANK)	fprintf(fl, "Bank: %d\n", GET_BANK_GOLD(ch));
-  if (GET_EXP(ch)	   != PFDEF_EXP)	fprintf(fl, "Exp : %d\n", GET_EXP(ch));
-  if (GET_HITROLL(ch)	   != PFDEF_HITROLL)	fprintf(fl, "Hrol: %d\n", GET_HITROLL(ch));
-  if (GET_DAMROLL(ch)	   != PFDEF_DAMROLL)	fprintf(fl, "Drol: %d\n", GET_DAMROLL(ch));
-  if (GET_OLC_ZONE(ch)     != PFDEF_OLC)        fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
-  if (GET_PAGE_LENGTH(ch)  != PFDEF_PAGELENGTH) fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
+  jsonAddObject(base_object, jsonCreateInt("ac", GET_AC(ch)));
+  jsonAddObject(base_object, jsonCreateInt("gold", GET_GOLD(ch)));
+  jsonAddObject(base_object, jsonCreateInt("bankGold", GET_BANK_GOLD(ch)));
+  jsonAddObject(base_object, jsonCreateInt("exp", GET_EXP(ch)));
+  jsonAddObject(base_object, jsonCreateInt("hitroll", GET_HITROLL(ch)));
+  jsonAddObject(base_object, jsonCreateInt("damroll", GET_DAMROLL(ch)));
+
+  if (GET_AC(ch) != PFDEF_AC)		fprintf(fl, "Ac  : %d\n", GET_AC(ch));
+  if (GET_GOLD(ch) != PFDEF_GOLD)	fprintf(fl, "Gold: %d\n", GET_GOLD(ch));
+  if (GET_BANK_GOLD(ch) != PFDEF_BANK)	fprintf(fl, "Bank: %d\n", GET_BANK_GOLD(ch));
+  if (GET_EXP(ch) != PFDEF_EXP)	fprintf(fl, "Exp : %d\n", GET_EXP(ch));
+  if (GET_HITROLL(ch) != PFDEF_HITROLL)	fprintf(fl, "Hrol: %d\n", GET_HITROLL(ch));
+  if (GET_DAMROLL(ch) != PFDEF_DAMROLL)	fprintf(fl, "Drol: %d\n", GET_DAMROLL(ch));
+
+  jsonAddObject(base_object, jsonCreateInt("olcZone", GET_OLC_ZONE(ch)));
+  jsonAddObject(base_object, jsonCreateInt("pageLength", GET_PAGE_LENGTH(ch)));
+  jsonAddObject(base_object, jsonCreateInt("screenWidth", GET_SCREEN_WIDTH(ch)));
+  jsonAddObject(base_object, jsonCreateInt("questPoints", GET_QUESTPOINTS(ch)));
+  jsonAddObject(base_object, jsonCreateInt("questCounter", GET_QUEST_COUNTER(ch)));
+
+  if (GET_OLC_ZONE(ch) != PFDEF_OLC)        fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
+  if (GET_PAGE_LENGTH(ch) != PFDEF_PAGELENGTH) fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
   if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH) fprintf(fl, "ScrW: %d\n", GET_SCREEN_WIDTH(ch));
-  if (GET_QUESTPOINTS(ch)  != PFDEF_QUESTPOINTS) fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
-  if (GET_QUEST_COUNTER(ch)!= PFDEF_QUESTCOUNT)  fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
-  if (GET_NUM_QUESTS(ch)   != PFDEF_COMPQUESTS) {
+  if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS) fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
+  if (GET_QUEST_COUNTER(ch) != PFDEF_QUESTCOUNT)  fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
+
+
+  if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS) {
     fprintf(fl, "Qest:\n");
-    for (i = 0; i < GET_NUM_QUESTS(ch); i++)
+
+    array = jsonCreateArray("quests");
+
+    for (i = 0; i < GET_NUM_QUESTS(ch); i++) {
       fprintf(fl, "%d\n", ch->player_specials->saved.completed_quests[i]);
+      jsonAddObject(array, jsonCreateInt(NULL, ch->player_specials->saved.completed_quests[i]));
+    }
+
+    jsonAddObject(base_object, array);
     fprintf(fl, "%d\n", NOTHING);
   }
-  if (GET_QUEST(ch)        != PFDEF_CURRQUEST)  fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
 
- if (SCRIPT(ch)) {
-   for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
-   fprintf(fl, "Trig: %d\n",GET_TRIG_VNUM(t));
-}
+  if (GET_QUEST(ch) != PFDEF_CURRQUEST)  fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
+  jsonAddObject(base_object, jsonCreateInt("questCurrent", GET_QUEST(ch)));
+
+  if (SCRIPT(ch)) {
+    array = jsonCreateArray("scripts");
+
+    for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next) {
+      fprintf(fl, "Trig: %d\n", GET_TRIG_VNUM(t));
+      jsonAddObject(array, jsonCreateInt(NULL, GET_TRIG_VNUM(t)));
+    }
+    jsonAddObject(base_object, array);
+  }
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     fprintf(fl, "Skil:\n");
+    array = jsonCreateArray("skills");
+
     for (i = 1; i <= MAX_SKILLS; i++) {
-     if (GET_SKILL(ch, i))
-	fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
+      if (GET_SKILL(ch, i)) {
+        fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
+
+        tmp_object = jsonCreateObject(NULL);
+        jsonAddObject(array, tmp_object);
+        jsonAddObject(tmp_object, jsonCreateInt("skill", i));
+        jsonAddObject(tmp_object, jsonCreateInt("skillLevel", GET_SKILL(ch, i)));
+      }
     }
+    jsonAddObject(base_object, array);
     fprintf(fl, "0 0\n");
   }
 
   /* Save affects */
   if (tmp_aff[0].spell > 0) {
     fprintf(fl, "Affs:\n");
+    array = jsonCreateArray("affects");
+
     for (i = 0; i < MAX_AFFECT; i++) {
       aff = &tmp_aff[i];
-      if (aff->spell)
-		fprintf(fl, "%d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
+
+      if (aff->spell) {
+        fprintf(fl, "%d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
           aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1], aff->bitvector[2], aff->bitvector[3]);
+
+        tmp_object = jsonCreateObject(NULL);
+        jsonAddObject(array, tmp_object);
+        jsonAddObject(tmp_object, jsonCreateInt("spellNum", aff->spell));
+        jsonAddObject(tmp_object, jsonCreateInt("duration", aff->duration));
+        jsonAddObject(tmp_object, jsonCreateInt("modifier", aff->modifier));
+        jsonAddObject(tmp_object, jsonCreateInt("location", aff->location));
+        jsonAddObject(tmp_object, jsonCreateInt("bitvector0", aff->bitvector[0]));
+        jsonAddObject(tmp_object, jsonCreateInt("bitvector1", aff->bitvector[1]));
+        jsonAddObject(tmp_object, jsonCreateInt("bitvector2", aff->bitvector[2]));
+        jsonAddObject(tmp_object, jsonCreateInt("bitvector3", aff->bitvector[3]));
+      }
+
     }
+    jsonAddObject(base_object, array);
     fprintf(fl, "0 0 0 0 0 0 0 0\n");
   }
 
@@ -692,6 +842,11 @@ void save_char(struct char_data * ch)
   save_char_vars_ascii(fl, ch);
 
   fclose(fl);
+  
+  char json_filename[MAX_STRING_LENGTH];
+  snprintf(json_filename, MAX_STRING_LENGTH, "%s.json", filename);
+  json_write_to_disk(json_filename, base_object);
+  json_free_object(base_object);
 
   /* More char_to_store code to add spell and eq affections back in. */
   for (i = 0; i < MAX_AFFECT; i++) {
@@ -702,12 +857,12 @@ void save_char(struct char_data * ch)
   for (i = 0; i < NUM_WEARS; i++) {
     if (char_eq[i])
 #ifndef NO_EXTRANEOUS_TRIGGERS
-        if (wear_otrigger(char_eq[i], ch, i))
+      if (wear_otrigger(char_eq[i], ch, i))
 #endif
-    equip_char(ch, char_eq[i], i);
+        equip_char(ch, char_eq[i], i);
 #ifndef NO_EXTRANEOUS_TRIGGERS
-          else
-          obj_to_char(char_eq[i], ch);
+      else
+        obj_to_char(char_eq[i], ch);
 #endif
   }
   /* end char_to_store code */
